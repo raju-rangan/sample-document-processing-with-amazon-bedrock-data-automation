@@ -1,7 +1,7 @@
 {
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"description": "A standard discharge summary report used by hospital containing details of the patient, medical provider and key facts on visit, medical assessment and a summary of discharge.",
-	"documentClass": "Hospital Discharge Summary",
+	"class": "Hospital Discharge Summary",
 	"type": "object",
 	"definitions": {
 		"VisitDetails": {
@@ -9,18 +9,18 @@
 			"properties": {
 				"admitted_date": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Date of admission in MM-DD-YYYY format"
+					"inferenceType": "explicit",
+					"instruction": "Date of admission in MM-DD-YYYY format"
 				},
 				"discharged_date": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Date of discharge in MM-DD-YYYY format"
+					"inferenceType": "explicit",
+					"instruction": "Date of discharge in MM-DD-YYYY format"
 				},
 				"discharged_to": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Where the patient was discharged to"
+					"inferenceType": "explicit",
+					"instruction": "Where the patient was discharged to"
 				}
 			}
 		},
@@ -29,18 +29,18 @@
 			"properties": {
 				"name": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Name of the patient"
+					"inferenceType": "explicit",
+					"instruction": "Name of the patient"
 				},
 				"gender": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Gender of the patient"
+					"inferenceType": "explicit",
+					"instruction": "Gender of the patient"
 				},
 				"patient_id": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Unique id of the patient"
+					"inferenceType": "explicit",
+					"instruction": "Unique id of the patient"
 				}
 			}
 		},
@@ -49,13 +49,13 @@
 			"properties": {
 				"name": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Name of the provider"
+					"inferenceType": "explicit",
+					"instruction": "Name of the provider"
 				},
 				"provider_id": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Unique id of the provider"
+					"inferenceType": "explicit",
+					"instruction": "Unique id of the provider"
 				}
 			}
 		},
@@ -64,8 +64,8 @@
 			"properties": {
 				"reported_symptoms": {
 					"type": "string",
-					"inferenceType": "extractive",
-					"description": "Reported symptoms and history of present illness"
+					"inferenceType": "explicit",
+					"instruction": "Reported symptoms and history of present illness"
 				}
 			}
 		}
@@ -73,13 +73,13 @@
 	"properties": {
 		"hospital_name": {
 			"type": "string",
-			"inferenceType": "extractive",
-			"description": "Name of the hospital"
+			"inferenceType": "explicit",
+			"instruction": "Name of the hospital"
 		},
 		"hospital_contact": {
 			"type": "string",
-			"inferenceType": "extractive",
-			"description": "Contact details of the hospital"
+			"inferenceType": "explicit",
+			"instruction": "Contact details of the hospital"
 		},
 		"visit_details": {
 			"$ref": "#/definitions/VisitDetails"
@@ -95,8 +95,8 @@
 		},
 		"discharge_summary": {
 			"type": "string",
-			"inferenceType": "extractive",
-			"description": "Summary of discharge instructions"
+			"inferenceType": "explicit",
+			"instruction": "Summary of discharge instructions"
 		}
 	}
 }
