@@ -393,6 +393,11 @@ Resources:
   # Lambda function to load schema
   SchemaLoaderLambda:
     Type: AWS::Lambda::Function
+    DependsOn:
+         - CloudformationVpcEndoint
+         - CloudWatchLogsVpcEndoint
+         - RdsDataVpcEndoint
+         - SecretsManagerVpcEndoint
     Properties:
       Description: Lambda function to setup initial data tables and sample data
       Handler: index.handler
@@ -406,7 +411,7 @@ Resources:
           - !Ref BDAWorkshopPrivateSubnet2
         SecurityGroupIds:
           - !Ref VPCLambdaSecurityGroup
-      ReservedConcurrentExecutions: 5
+      ReservedConcurrentExecutions: 1
       Layers:
         - !Ref ClaimsReviewLambdaLayer
       Code: 
@@ -566,6 +571,10 @@ Resources:
   
   VectorStoreIndexCreationLambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn:
+         - CloudformationVpcEndoint
+         - CloudWatchLogsVpcEndoint
+         - ClaimsVectorStoreVPCEndpoint
     Properties:
       Runtime: python3.11
       Handler: index.lambda_handler
@@ -578,7 +587,7 @@ Resources:
           - !Ref BDAWorkshopPrivateSubnet2
         SecurityGroupIds:
           - !Ref VPCLambdaSecurityGroup
-      ReservedConcurrentExecutions: 5
+      ReservedConcurrentExecutions: 1
       Layers:
         - !Ref ClaimsReviewLambdaLayer
       Code: 
@@ -739,7 +748,9 @@ Resources:
             - bedrock:InvokeModel*
             - bedrock:CreateInferenceProfile
             Resource:
-            - !Sub arn:aws:bedrock:${AWS::Region}::foundation-model/*
+            - !Sub arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0
+            - !Sub arn:aws:bedrock:us-east-2::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0
+            - !Sub arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-5-haiku-20241022-v1:0
             - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:inference-profile/*
             - !Sub arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:application-inference-profile/*
             Sid: InferenceCreateStatement
@@ -888,6 +899,11 @@ Resources:
 
   ClaimsReviewAgentActionLambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn:
+      - CloudformationVpcEndoint
+      - CloudWatchLogsVpcEndoint
+      - RdsDataVpcEndoint
+      - SecretsManagerVpcEndoint
     Properties:
       Runtime: python3.11
       Handler: index.lambda_handler
@@ -900,7 +916,6 @@ Resources:
           - !Ref BDAWorkshopPrivateSubnet2
         SecurityGroupIds:
           - !Ref VPCLambdaSecurityGroup
-      ReservedConcurrentExecutions: 5
       Layers:
         - !Ref ClaimsReviewLambdaLayer
       Code: 
@@ -1239,20 +1254,6 @@ Resources:
       OwnershipSettings:
         OwnerUserProfileName: !Ref UserProfileName
 
-  JupyterServerApp:
-    Type: AWS::SageMaker::App
-    DependsOn: UserProfile
-    Properties:
-      AppName: default
-      AppType: JupyterServer
-      DomainId: !Ref StudioDomain
-      UserProfileName: !Ref UserProfileName
-      ResourceSpec: 
-        SageMakerImageArn: !FindInMap 
-          - RegionMap
-          - !Ref AWS::Region
-          - jupyter
-
   DeleteEFSVolumeLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -1295,6 +1296,10 @@ Resources:
   
   DeleteEFSVolumeLambda:
     Type: AWS::Lambda::Function
+    DependsOn:
+      - CloudformationVpcEndoint
+      - CloudWatchLogsVpcEndoint
+      - SageMakerVpcEndoint
     Properties:
       Handler: index.lambda_handler
       Description: "Delete all objects in S3 bucket"
@@ -1308,7 +1313,7 @@ Resources:
           - !Ref BDAWorkshopPrivateSubnet2
         SecurityGroupIds:
           - !Ref VPCLambdaSecurityGroup
-      ReservedConcurrentExecutions: 5
+      ReservedConcurrentExecutions: 1
       Layers:
         - !Ref ClaimsReviewLambdaLayer
       Code: 
@@ -1367,6 +1372,9 @@ Resources:
     Type: AWS::Lambda::Function
     DependsOn:
       - UserProfile
+      - SageMakerVpcEndoint
+      - CloudformationVpcEndoint
+      - CloudWatchLogsVpcEndoint
     Properties:
       Handler: index.lambda_handler
       Description: Add LifeCycle Configuration to copy NB files to Studio
@@ -1380,7 +1388,7 @@ Resources:
           - !Ref BDAWorkshopPrivateSubnet2
         SecurityGroupIds:
           - !Ref VPCLambdaSecurityGroup
-      ReservedConcurrentExecutions: 5
+      ReservedConcurrentExecutions: 1
       Layers:
         - !Ref ClaimsReviewLambdaLayer
       Code:
