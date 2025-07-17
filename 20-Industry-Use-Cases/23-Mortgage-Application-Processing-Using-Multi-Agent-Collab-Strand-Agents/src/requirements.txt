@@ -1,0 +1,6 @@
+fastmcp==2.10.5
+pydantic==2.11.7
+boto3==1.39.4
+httpx==0.28.1
+strands-agents==v0.3.0
+chainlit==2.6.0
