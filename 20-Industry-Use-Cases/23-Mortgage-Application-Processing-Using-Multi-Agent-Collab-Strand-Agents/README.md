@@ -53,32 +53,57 @@ A comprehensive document processing system built with Terraform that automatical
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd terraform/
+   cd <project-directory>
    ```
 
-2. **Initialize Terraform**
+2. **View available commands**
    ```bash
-   terraform init
+   make help
    ```
 
 3. **Configure environment**
    ```bash
    # Edit the webhook URL in environments/dev/terraform.tfvars
-   vim environments/dev/terraform.tfvars
+   vim terraform/environments/dev/terraform.tfvars
    ```
 
 4. **Deploy infrastructure**
    ```bash
-   terraform plan -var-file="environments/dev/terraform.tfvars"
-   terraform apply -var-file="environments/dev/terraform.tfvars"
+   # Complete development deployment
+   make dev
+   
+   # Or step by step:
+   make dev-init    # Initialize Terraform
+   make dev-plan    # Plan deployment  
+   make dev-apply   # Apply configuration
    ```
 
 5. **Test the system**
    ```bash
    # Upload a test document
-   BUCKET_NAME=$(terraform output -raw document_bucket_name)
-   aws s3 cp test-document.pdf s3://$BUCKET_NAME/
+   make test-upload ENV=dev
+   
+   # Check logs
+   make logs ENV=dev
    ```
+
+## 🔧 Available Commands
+
+### Core Deployment
+- `make dev` - Complete development deployment
+- `make prod-plan` - Plan production deployment
+- `make prod-apply` - Apply production configuration
+
+### Testing & Monitoring
+- `make test-upload ENV=<dev|prod>` - Upload test document
+- `make logs ENV=<dev|prod>` - Show Lambda function logs
+- `make status ENV=<dev|prod>` - Show infrastructure status
+
+### Utilities
+- `make validate` - Validate Terraform configuration
+- `make format` - Format Terraform files
+- `make clean` - Clean temporary files
+- `make help` - Show all available commands
 
 ## 📁 Project Structure
 
