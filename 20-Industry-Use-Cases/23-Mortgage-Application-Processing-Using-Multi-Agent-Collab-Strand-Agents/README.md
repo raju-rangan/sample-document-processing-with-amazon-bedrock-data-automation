@@ -56,54 +56,34 @@ A comprehensive document processing system built with Terraform that automatical
    cd <project-directory>
    ```
 
-2. **View available commands**
+2. **Configure webhook URL**
    ```bash
-   make help
-   ```
-
-3. **Configure environment**
-   ```bash
-   # Edit the webhook URL in environments/dev/terraform.tfvars
    vim terraform/environments/dev/terraform.tfvars
+   # Update webhook_url to your endpoint
    ```
 
-4. **Deploy infrastructure**
+3. **Deploy infrastructure**
    ```bash
-   # Complete development deployment
-   make dev
-   
-   # Or step by step:
-   make dev-init    # Initialize Terraform
-   make dev-plan    # Plan deployment  
-   make dev-apply   # Apply configuration
+   make init
+   make plan
+   make apply
    ```
 
-5. **Test the system**
+4. **Test the system**
    ```bash
-   # Upload a test document
-   make test-upload ENV=dev
-   
-   # Check logs
-   make logs ENV=dev
+   make test
+   make logs
    ```
 
 ## 🔧 Available Commands
 
-### Core Deployment
-- `make dev` - Complete development deployment
-- `make prod-plan` - Plan production deployment
-- `make prod-apply` - Apply production configuration
-
-### Testing & Monitoring
-- `make test-upload ENV=<dev|prod>` - Upload test document
-- `make logs ENV=<dev|prod>` - Show Lambda function logs
-- `make status ENV=<dev|prod>` - Show infrastructure status
-
-### Utilities
-- `make validate` - Validate Terraform configuration
-- `make format` - Format Terraform files
+- `make init` - Initialize Terraform
+- `make plan` - Plan deployment
+- `make apply` - Deploy infrastructure
+- `make destroy` - Destroy infrastructure
+- `make test` - Upload test document
+- `make logs` - Show Lambda logs
 - `make clean` - Clean temporary files
-- `make help` - Show all available commands
 
 ## 📁 Project Structure
 
