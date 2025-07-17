@@ -224,8 +224,8 @@ resource "aws_iam_role_policy" "bedrock_service_policy" {
           "s3:ListBucket"
         ]
         Resource = [
-          aws_s3_bucket.vector_storage.arn,
-          "${aws_s3_bucket.vector_storage.arn}/*"
+          aws_s3_bucket.document_storage.arn,
+          "${aws_s3_bucket.document_storage.arn}/*"
         ]
       },
       {
@@ -234,6 +234,13 @@ resource "aws_iam_role_policy" "bedrock_service_policy" {
           "bedrock:InvokeModel"
         ]
         Resource = var.bedrock_model_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "aoss:APIAccessAll"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -335,4 +342,136 @@ resource "aws_lambda_function" "document_processor" {
 resource "aws_s3_bucket_notification" "document_upload_notification" {
   bucket      = aws_s3_bucket.document_storage.id
   eventbridge = true
+}
+#######################
+# Bedrock Knowledge Base
+#######################
+
+# Bedrock Knowledge Base
+resource "aws_bedrockagent_knowledge_base" "document_kb" {
+  name     = "${local.name_prefix}-${var.knowledge_base_name}"
+  role_arn = aws_iam_role.bedrock_service_role.arn
+  
+  knowledge_base_configuration {
+    vector_knowledge_base_configuration {
+      embedding_model_arn = var.bedrock_model_arn
+    }
+    type = "VECTOR"
+  }
+  
+  storage_configuration {
+    type = "OPENSEARCH_SERVERLESS"
+    opensearch_serverless_configuration {
+      collection_arn    = aws_opensearchserverless_collection.vector_collection.arn
+      vector_index_name = "document-index"
+      field_mapping {
+        vector_field   = "vector"
+        text_field     = "text"
+        metadata_field = "metadata"
+      }
+    }
+  }
+
+  tags = local.common_tags
+}
+
+# OpenSearch Serverless Collection for vector storage
+resource "aws_opensearchserverless_collection" "vector_collection" {
+  name = "${local.name_prefix}-vector-collection"
+  type = "VECTORSEARCH"
+
+  tags = local.common_tags
+}
+
+# OpenSearch Serverless Security Policy
+resource "aws_opensearchserverless_security_policy" "vector_collection_encryption" {
+  name = "${local.name_prefix}-vector-collection-encryption"
+  type = "encryption"
+  policy = jsonencode({
+    Rules = [
+      {
+        Resource = [
+          "collection/${local.name_prefix}-vector-collection"
+        ]
+        ResourceType = "collection"
+      }
+    ]
+    AWSOwnedKey = true
+  })
+}
+
+resource "aws_opensearchserverless_security_policy" "vector_collection_network" {
+  name = "${local.name_prefix}-vector-collection-network"
+  type = "network"
+  policy = jsonencode([
+    {
+      Rules = [
+        {
+          Resource = [
+            "collection/${local.name_prefix}-vector-collection"
+          ]
+          ResourceType = "collection"
+        }
+      ]
+      AllowFromPublic = true
+    }
+  ])
+}
+
+# Data Access Policy for Bedrock
+resource "aws_opensearchserverless_access_policy" "vector_collection_access" {
+  name = "${local.name_prefix}-vector-collection-access"
+  type = "data"
+  policy = jsonencode([
+    {
+      Rules = [
+        {
+          Resource = [
+            "collection/${local.name_prefix}-vector-collection"
+          ]
+          Permission = [
+            "aoss:CreateCollectionItems",
+            "aoss:DeleteCollectionItems",
+            "aoss:UpdateCollectionItems",
+            "aoss:DescribeCollectionItems"
+          ]
+          ResourceType = "collection"
+        },
+        {
+          Resource = [
+            "index/${local.name_prefix}-vector-collection/*"
+          ]
+          Permission = [
+            "aoss:CreateIndex",
+            "aoss:DeleteIndex",
+            "aoss:UpdateIndex",
+            "aoss:DescribeIndex",
+            "aoss:ReadDocument",
+            "aoss:WriteDocument"
+          ]
+          ResourceType = "index"
+        }
+      ]
+      Principal = [
+        aws_iam_role.bedrock_service_role.arn
+      ]
+    }
+  ])
+}
+
+# Bedrock Knowledge Base Data Source
+resource "aws_bedrockagent_data_source" "document_data_source" {
+  knowledge_base_id = aws_bedrockagent_knowledge_base.document_kb.id
+  name              = "${local.name_prefix}-document-data-source"
+  
+  data_source_configuration {
+    type = "S3"
+    s3_configuration {
+      bucket_arn = aws_s3_bucket.document_storage.arn
+    }
+  }
+
+  depends_on = [
+    aws_opensearchserverless_collection.vector_collection
+  ]
 }

@@ -62,3 +62,20 @@ output "bedrock_role_arn" {
   description = "ARN of the Bedrock service role"
   value       = aws_iam_role.bedrock_service_role.arn
 }
+
+# OpenSearch Serverless Outputs
+output "opensearch_collection_arn" {
+  description = "ARN of the OpenSearch Serverless collection"
+  value       = aws_opensearchserverless_collection.vector_collection.arn
+}
+
+output "opensearch_collection_endpoint" {
+  description = "Endpoint of the OpenSearch Serverless collection"
+  value       = aws_opensearchserverless_collection.vector_collection.collection_endpoint
+}
+
+# Data Source Outputs
+output "bedrock_data_source_id" {
+  description = "ID of the Bedrock data source"
+  value       = aws_bedrockagent_data_source.document_data_source.data_source_id
+}
