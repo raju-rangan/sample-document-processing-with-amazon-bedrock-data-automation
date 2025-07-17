@@ -1,8 +1,4 @@
-.PHONY: help init plan apply destroy clean test logs
-
-help: ## Show available commands
-	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
+.PHONY: init plan apply destroy
 
 init: ## Initialize Terraform
 	cd terraform && terraform init

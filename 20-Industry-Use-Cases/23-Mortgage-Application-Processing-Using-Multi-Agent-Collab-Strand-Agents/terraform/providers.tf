@@ -11,6 +11,4 @@ provider "aws" {
   }
 }
 
-provider "random" {
-  # Random provider for generating unique resource names
-}
+provider "random" {}

@@ -20,16 +20,16 @@ output "lambda_function_arn" {
   value       = aws_lambda_function.document_processor.arn
 }
 
-# Bedrock Knowledge Base Outputs
-output "knowledge_base_id" {
-  description = "ID of the Bedrock Knowledge Base"
-  value       = aws_bedrockagent_knowledge_base.document_kb.id
-}
+# Bedrock Knowledge Base Outputs - Commented out temporarily
+# output "knowledge_base_id" {
+#   description = "ID of the Bedrock Knowledge Base"
+#   value       = aws_bedrockagent_knowledge_base.document_kb.id
+# }
 
-output "knowledge_base_arn" {
-  description = "ARN of the Bedrock Knowledge Base"
-  value       = aws_bedrockagent_knowledge_base.document_kb.arn
-}
+# output "knowledge_base_arn" {
+#   description = "ARN of the Bedrock Knowledge Base"
+#   value       = aws_bedrockagent_knowledge_base.document_kb.arn
+# }
 
 # OpenSearch Serverless Outputs
 output "opensearch_collection_arn" {
@@ -42,11 +42,11 @@ output "opensearch_collection_endpoint" {
   value       = aws_opensearchserverless_collection.vector_collection.collection_endpoint
 }
 
-# Data Source Outputs
-output "bedrock_data_source_id" {
-  description = "ID of the Bedrock data source"
-  value       = aws_bedrockagent_data_source.document_data_source.data_source_id
-}
+# Data Source Outputs - Commented out temporarily
+# output "bedrock_data_source_id" {
+#   description = "ID of the Bedrock data source"
+#   value       = aws_bedrockagent_data_source.document_data_source.data_source_id
+# }
 
 # IAM Role Outputs
 output "lambda_role_arn" {
