@@ -29,12 +29,6 @@ variable "document_bucket_name" {
   default     = "document-storage"
 }
 
-variable "vector_bucket_name" {
-  description = "Name for the vector storage S3 bucket (will be made unique)"
-  type        = string
-  default     = "vector-storage"
-}
-
 variable "enable_s3_versioning" {
   description = "Enable versioning on S3 buckets"
   type        = bool

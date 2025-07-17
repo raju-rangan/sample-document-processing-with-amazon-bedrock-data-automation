@@ -3,16 +3,16 @@
 ## High-Level Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Document      │    │   EventBridge    │    │   Processing    │
-│   Upload S3     │───▶│   Rule           │───▶│   Lambda        │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                         │
-                                                         ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Vector Store  │◀───│   Bedrock KB     │◀───│   HTTP Webhook  │
-│   S3 Bucket     │    │   Knowledge Base │    │   Endpoint      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Document      │    │   Processing    │    │   HTTP Webhook  │
+│   Upload S3     │───▶│   Lambda        │───▶│   Endpoint      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌──────────────────┐
+│  OpenSearch     │◀───│   Bedrock KB     │
+│  Serverless     │    │   Knowledge Base │
+└─────────────────┘    └──────────────────┘
 ```
 
 ## Component Design
@@ -23,16 +23,17 @@
   - Versioning enabled
   - Server-side encryption (SSE-S3)
   - Public access blocked
-  - Event notifications enabled
+  - Direct Lambda trigger on object creation
 
-### 2. Event Processing (EventBridge + Lambda)
-- **Purpose**: Process document upload events
+### 2. Event Processing (Lambda)
+- **Purpose**: Process document upload events and call HTTP webhook
+- **Trigger**: Direct S3 event notification
 - **Flow**:
-  1. S3 sends event to EventBridge
-  2. EventBridge rule triggers Lambda
-  3. Lambda processes document and calls HTTP endpoint
+  1. S3 sends event directly to Lambda
+  2. Lambda processes document metadata
+  3. Lambda calls HTTP webhook endpoint
 
-### 3. Vector Storage (S3)
+### 3. Vector Storage (OpenSearch Serverless)
 - **Purpose**: Store document embeddings for retrieval
 - **Configuration**:
   - Optimized for frequent access
@@ -41,23 +42,29 @@
 ### 4. Knowledge Base (Amazon Bedrock)
 - **Purpose**: Enable semantic search and retrieval
 - **Configuration**:
-  - Connected to vector store S3
+  - Connected to OpenSearch Serverless
   - Embedding model: Amazon Titan
-  - Chunking strategy configured
+  - Data source: Document storage S3
 
 ## Security Architecture
 
 ### IAM Roles and Policies
-- **Lambda Execution Role**: Access to S3, EventBridge, Bedrock
-- **Bedrock Service Role**: Access to vector store S3
+- **Lambda Execution Role**: Access to S3, Bedrock
+- **Bedrock Service Role**: Access to document S3 and OpenSearch
 - **S3 Bucket Policies**: Restrict access to authorized services
 
 ### Encryption
 - **S3**: Server-side encryption with AWS managed keys
-- **EventBridge**: Encryption in transit
 - **Lambda**: Environment variables encrypted
+- **OpenSearch**: Encryption at rest and in transit
 
-## Terraform Module Structure
+## Simplified Benefits
+- **Reduced Complexity**: No EventBridge configuration needed
+- **Lower Latency**: Direct S3 to Lambda trigger
+- **Cost Optimization**: Fewer AWS services involved
+- **Easier Debugging**: Simpler event flow to troubleshoot
+
+## Terraform Structure
 
 ```
 terraform/
@@ -66,18 +73,15 @@ terraform/
 ├── outputs.tf          # Output values
 ├── providers.tf        # Provider configuration
 ├── versions.tf         # Version constraints
-├── modules/
-│   ├── s3/             # S3 bucket module
-│   ├── eventbridge/    # EventBridge module
-│   ├── lambda/         # Lambda function module
-│   └── bedrock/        # Bedrock KB module
+├── lambda/
+│   └── document_processor.py
 └── environments/
-    ├── dev/            # Development environment
-    └── prod/           # Production environment
+    └── dev/
+        └── terraform.tfvars
 ```
 
 ## Deployment Strategy
-1. **Phase 1**: Core S3 buckets and IAM roles
-2. **Phase 2**: EventBridge and Lambda function
+1. **Phase 1**: S3 bucket and IAM roles
+2. **Phase 2**: Lambda function with S3 trigger
 3. **Phase 3**: Bedrock Knowledge Base integration
 4. **Phase 4**: Testing and validation

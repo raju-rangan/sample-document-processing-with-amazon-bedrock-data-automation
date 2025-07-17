@@ -5,34 +5,33 @@ A comprehensive document processing system built with Terraform that automatical
 ## 🏗️ Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Document      │    │   EventBridge    │    │   Processing    │
-│   Upload S3     │───▶│   Rule           │───▶│   Lambda        │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                                         │
-                                                         ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  OpenSearch     │◀───│   Bedrock KB     │◀───│   HTTP Webhook  │
-│  Serverless     │    │   Knowledge Base │    │   Endpoint      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Document      │    │   Processing    │    │   HTTP Webhook  │
+│   Upload S3     │───▶│   Lambda        │───▶│   Endpoint      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+┌─────────────────┐    ┌──────────────────┐
+│  OpenSearch     │◀───│   Bedrock KB     │
+│  Serverless     │    │   Knowledge Base │
+└─────────────────┘    └──────────────────┘
 ```
 
 ## 🚀 Features
 
 - **Automated Document Processing**: Automatically processes documents uploaded to S3
-- **Event-Driven Architecture**: Uses EventBridge for reliable event processing
+- **Direct S3 Triggers**: Simple S3 to Lambda event processing
 - **HTTP Webhook Integration**: Triggers HTTP requests with document metadata
 - **Semantic Search**: Bedrock Knowledge Base for intelligent document retrieval
 - **Vector Storage**: OpenSearch Serverless for scalable vector operations
 - **Security First**: IAM roles with least privilege, encryption at rest
 - **Cost Optimized**: S3 lifecycle policies and serverless architecture
-- **Multi-Environment**: Separate configurations for dev/prod environments
+- **Simplified Architecture**: Direct S3 triggers for reduced complexity
 
 ## 📋 Components
 
 ### Core Infrastructure
 - **S3 Buckets**: Document storage with versioning and encryption
-- **EventBridge**: Event routing for S3 object creation
 - **Lambda Function**: Document processing and webhook integration
 - **IAM Roles**: Secure access control with least privilege
 
