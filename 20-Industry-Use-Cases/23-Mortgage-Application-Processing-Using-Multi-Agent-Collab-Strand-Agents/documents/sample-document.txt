@@ -1,0 +1,67 @@
+Sample Document for Testing Document Processing System
+=====================================================
+
+Date: July 17, 2025
+Document Type: Test Document
+Purpose: System Integration Testing
+
+Overview
+--------
+This document serves as a test case for the document processing system built with Amazon Bedrock, S3, EventBridge, and Lambda functions.
+
+Key Features Being Tested
+-------------------------
+1. Document Upload to S3
+   - Automatic event triggering
+   - Metadata extraction
+   - Security validation
+
+2. EventBridge Integration
+   - Event pattern matching
+   - Rule execution
+   - Target invocation
+
+3. Lambda Function Processing
+   - Event parsing
+   - HTTP webhook calls
+   - Error handling
+
+4. Bedrock Knowledge Base
+   - Document indexing
+   - Vector embedding
+   - Semantic search capabilities
+
+Test Scenarios
+--------------
+- Upload various document types (PDF, TXT, DOCX)
+- Verify webhook payload structure
+- Test error handling with invalid files
+- Validate security permissions
+- Monitor performance metrics
+
+Expected Outcomes
+-----------------
+✓ Document successfully uploaded to S3
+✓ EventBridge rule triggered
+✓ Lambda function executed without errors
+✓ HTTP webhook called with correct payload
+✓ Document indexed in Bedrock Knowledge Base
+✓ CloudWatch logs show successful processing
+
+Technical Details
+-----------------
+- S3 Bucket: Encrypted with lifecycle policies
+- Lambda Runtime: Python 3.11
+- EventBridge: Custom event patterns
+- Bedrock Model: Amazon Titan Embed Text v1
+- Vector Storage: OpenSearch Serverless
+
+Contact Information
+-------------------
+For questions about this test document or the system:
+- Project: Document Processing System
+- Environment: Development/Testing
+- Managed By: Terraform Infrastructure as Code
+
+---
+End of Test Document
