@@ -168,7 +168,8 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
         Effect = "Allow"
         Action = [
           "s3:GetObject",
-          "s3:GetObjectVersion"
+          "s3:GetObjectVersion",
+          "s3:HeadObject"
         ]
         Resource = [
           "${aws_s3_bucket.document_storage.arn}/*"
@@ -236,4 +237,102 @@ resource "aws_iam_role_policy" "bedrock_service_policy" {
       }
     ]
   })
+}
+
+#######################
+# EventBridge Configuration
+#######################
+
+# EventBridge Rule for S3 Object Creation
+resource "aws_cloudwatch_event_rule" "document_upload" {
+  name        = "${local.name_prefix}-document-upload-rule"
+  description = "Trigger when documents are uploaded to S3"
+
+  event_pattern = jsonencode({
+    source      = ["aws.s3"]
+    detail-type = ["Object Created"]
+    detail = {
+      bucket = {
+        name = [aws_s3_bucket.document_storage.bucket]
+      }
+    }
+  })
+
+  tags = local.common_tags
+}
+
+# EventBridge Target - Lambda Function
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.document_upload.name
+  target_id = "DocumentProcessorLambdaTarget"
+  arn       = aws_lambda_function.document_processor.arn
+}
+
+# Permission for EventBridge to invoke Lambda
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.document_processor.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.document_upload.arn
+}
+
+#######################
+# Lambda Function
+#######################
+
+# Lambda function code archive
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/document_processor.zip"
+  source {
+    content = templatefile("${path.module}/lambda/document_processor.py", {
+      webhook_url = var.webhook_url
+    })
+    filename = "index.py"
+  }
+}
+
+# CloudWatch Log Group for Lambda
+resource "aws_cloudwatch_log_group" "lambda_logs" {
+  name              = "/aws/lambda/${local.name_prefix}-document-processor"
+  retention_in_days = 14
+
+  tags = local.common_tags
+}
+
+# Lambda function
+resource "aws_lambda_function" "document_processor" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "${local.name_prefix}-document-processor"
+  role            = aws_iam_role.lambda_execution_role.arn
+  handler         = "index.handler"
+  runtime         = "python3.11"
+  timeout         = 60
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+
+  environment {
+    variables = {
+      WEBHOOK_URL = var.webhook_url
+      VECTOR_BUCKET = aws_s3_bucket.vector_storage.bucket
+      DOCUMENT_BUCKET = aws_s3_bucket.document_storage.bucket
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy.lambda_execution_policy,
+    aws_cloudwatch_log_group.lambda_logs
+  ]
+
+  tags = local.common_tags
+}
+
+#######################
+# S3 Event Notification
+#######################
+
+# S3 Bucket Notification to EventBridge
+resource "aws_s3_bucket_notification" "document_upload_notification" {
+  bucket      = aws_s3_bucket.document_storage.id
+  eventbridge = true
 }
