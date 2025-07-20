@@ -1,11 +1,9 @@
-# Local values for resource naming
 locals {
   common_tags = merge(
     {
       Project     = var.project_name
       ManagedBy   = "terraform"
-    },
-    var.additional_tags
+    }
   )
 }
 
@@ -13,7 +11,6 @@ locals {
 # S3 Buckets
 #######################
 
-# Document Storage S3 Bucket
 resource "aws_s3_bucket" "document_storage" {
   bucket = "${var.project_name}-${var.document_bucket_name}-${random_id.bucket_suffix.hex}"
   
@@ -22,7 +19,6 @@ resource "aws_s3_bucket" "document_storage" {
   })
 }
 
-# Random suffix for unique bucket naming
 resource "random_id" "bucket_suffix" {
   byte_length = 4
 }
@@ -51,7 +47,6 @@ resource "aws_s3_bucket_public_access_block" "document_storage" {
 # IAM Roles and Policies
 #######################
 
-# Lambda Execution Role
 resource "aws_iam_role" "lambda_execution_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -69,7 +64,6 @@ resource "aws_iam_role" "lambda_execution_role" {
   tags = local.common_tags
 }
 
-# Lambda Execution Policy
 resource "aws_iam_role_policy" "lambda_execution_policy" {
   role = aws_iam_role.lambda_execution_role.id
 
@@ -100,7 +94,6 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
   })
 }
 
-# Bedrock Service Role
 resource "aws_iam_role" "bedrock_service_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -118,7 +111,6 @@ resource "aws_iam_role" "bedrock_service_role" {
   tags = local.common_tags
 }
 
-# Bedrock Service Policy
 resource "aws_iam_role_policy" "bedrock_service_policy" {
   role = aws_iam_role.bedrock_service_role.id
 
@@ -158,7 +150,6 @@ resource "aws_iam_role_policy" "bedrock_service_policy" {
 # Lambda Function
 #######################
 
-# Lambda function code archive
 data "archive_file" "lambda_zip" {
   type        = "zip"
   output_path = "${path.module}/document_processor.zip"
@@ -170,15 +161,13 @@ data "archive_file" "lambda_zip" {
   }
 }
 
-# CloudWatch Log Group for Lambda
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/document-processor"
-  retention_in_days = 14
+  retention_in_days = 7
 
   tags = local.common_tags
 }
 
-# Lambda function
 resource "aws_lambda_function" "document_processor" {
   filename         = data.archive_file.lambda_zip.output_path
   function_name    = "document-processor"
@@ -203,7 +192,6 @@ resource "aws_lambda_function" "document_processor" {
   tags = local.common_tags
 }
 
-# Permission for S3 to invoke Lambda
 resource "aws_lambda_permission" "allow_s3" {
   statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
@@ -216,7 +204,6 @@ resource "aws_lambda_permission" "allow_s3" {
 # S3 Event Notification
 #######################
 
-# S3 Bucket Notification to Lambda
 resource "aws_s3_bucket_notification" "document_upload_notification" {
   bucket = aws_s3_bucket.document_storage.id
 

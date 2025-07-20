@@ -1,8 +1,7 @@
-# Project Configuration
 variable "project_name" {
   description = "Name of the project"
   type        = string
-  default     = "document-processing"
+  default     = "mortgage-application-processing"
 }
 
 variable "aws_region" {
@@ -11,7 +10,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-# S3 Configuration
 variable "document_bucket_name" {
   description = "Name for the document storage S3 bucket (will be made unique)"
   type        = string
@@ -24,14 +22,12 @@ variable "enable_s3_versioning" {
   default     = true
 }
 
-# EventBridge Configuration
 variable "webhook_url" {
   description = "HTTP webhook URL to call when documents are uploaded"
   type        = string
   default     = "https://webhook.site/unique-id"
 }
 
-# Bedrock Configuration
 variable "bedrock_model_arn" {
   description = "ARN of the Bedrock embedding model"
   type        = string
@@ -42,11 +38,4 @@ variable "knowledge_base_name" {
   description = "Name for the Bedrock Knowledge Base"
   type        = string
   default     = "document-kb"
-}
-
-# Tagging
-variable "additional_tags" {
-  description = "Additional tags to apply to resources"
-  type        = map(string)
-  default     = {}
 }
