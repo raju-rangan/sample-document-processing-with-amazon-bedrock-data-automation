@@ -3,7 +3,6 @@ locals {
   common_tags = merge(
     {
       Project     = var.project_name
-      Environment = var.environment
       ManagedBy   = "terraform"
     },
     var.additional_tags
@@ -16,7 +15,7 @@ locals {
 
 # Document Storage S3 Bucket
 resource "aws_s3_bucket" "document_storage" {
-  bucket = "${var.project_name}-${var.environment}-${var.document_bucket_name}-${random_id.bucket_suffix.hex}"
+  bucket = "${var.project_name}-${var.document_bucket_name}-${random_id.bucket_suffix.hex}"
   
   tags = merge(local.common_tags, {
     Type = "DocumentStorage"
