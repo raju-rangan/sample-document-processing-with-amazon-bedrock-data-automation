@@ -21,8 +21,8 @@ RUN python -m pip install --no-cache-dir -r requirements.txt
 
 # Set AWS region environment variable
 
-ENV AWS_REGION=us-west-2
-ENV AWS_DEFAULT_REGION=us-west-2
+ENV AWS_REGION=eu-central-1
+ENV AWS_DEFAULT_REGION=eu-central-1
 
 
 # Signal that this is running in Docker for host binding logic

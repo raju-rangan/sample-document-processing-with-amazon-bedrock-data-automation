@@ -4,6 +4,7 @@ from dynamo_agent_assistant import dynamo_agent_assistant
 from kb_retrieval_assistant import kb_retrieval_assistant
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
+
 app = BedrockAgentCoreApp(debug=True)
 
 SYSTEM_PROMPT = """
@@ -102,8 +103,7 @@ Always approach each mortgage application and S3-stored PDF document with thorou
 
 tools = [bda_agent_assistant,dynamo_agent_assistant,kb_retrieval_assistant]
 agent = Agent(tools=tools,
-            system_prompt=SYSTEM_PROMPT,
-            callback_handler=None)
+            system_prompt=SYSTEM_PROMPT)
 
 @app.entrypoint
 async def process_mortgage(payload):

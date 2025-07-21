@@ -94,7 +94,10 @@ def bda_agent_assistant(query: str) -> str:
     bda_mcp_client = MCPClient(lambda: stdio_client(
         StdioServerParameters(
             command="uvx", 
-            args=["awslabs.aws-bedrock-data-automation-mcp-server@latest"]
+            args=["awslabs.aws-bedrock-data-automation-mcp-server@latest"],
+            env={
+                'AWS_BUCKET_NAME': ""
+            }
         )
     ))
 
