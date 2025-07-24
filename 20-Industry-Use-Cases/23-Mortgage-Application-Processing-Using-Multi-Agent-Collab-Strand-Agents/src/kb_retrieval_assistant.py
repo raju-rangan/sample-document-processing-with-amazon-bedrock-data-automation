@@ -105,12 +105,11 @@ kb_retrieval_mcp_client = MCPClient(lambda: stdio_client(
         args=["awslabs.bedrock-kb-retrieval-mcp-server@latest"]
     )
 ))
-with kb_retrieval_mcp_client:
-    tools = kb_retrieval_mcp_client.list_tools_sync()
 
-    kb_retrieval_agent = Agent(
-        name="kb_retrieval_agent",
-        system_prompt=KB_RETRIEVAL_AGENT_ASSISTANT_SYSTEM_PROMPT,
-        model=bedrock_model,
-        tools=tools,
-    )
+# Initialize agent with MCP client properly managed
+kb_retrieval_agent = Agent(
+    name="kb_retrieval_agent",
+    system_prompt=KB_RETRIEVAL_AGENT_ASSISTANT_SYSTEM_PROMPT,
+    model=bedrock_model,
+    tools=[kb_retrieval_mcp_client],  # Pass the MCP client directly as a tool
+)

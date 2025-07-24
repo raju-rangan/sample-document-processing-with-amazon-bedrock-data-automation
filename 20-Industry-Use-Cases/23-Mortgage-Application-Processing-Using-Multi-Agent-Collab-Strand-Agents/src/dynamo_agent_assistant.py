@@ -95,12 +95,10 @@ dynamo_mcp_client = MCPClient(lambda: stdio_client(
     )
 ))
 
-with dynamo_mcp_client:
-    tools = dynamo_mcp_client.list_tools_sync()
-
-    dynamodb_agent = Agent(
-        name="dynamodb_agent",
-        system_prompt=DYNAMODB_AGENT_ASSISTANT_SYSTEM_PROMPT,
-        model=bedrock_model,
-        tools=tools,
-    )
+# Initialize agent with MCP client properly managed
+dynamodb_agent = Agent(
+    name="dynamodb_agent",
+    system_prompt=DYNAMODB_AGENT_ASSISTANT_SYSTEM_PROMPT,
+    model=bedrock_model,
+    tools=[dynamo_mcp_client],  # Pass the MCP client directly as a tool
+)

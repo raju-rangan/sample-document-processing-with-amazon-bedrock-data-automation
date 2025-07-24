@@ -86,12 +86,10 @@ bda_mcp_client = MCPClient(lambda: stdio_client(
     )
 ))
 
-with bda_mcp_client:
-    tools = bda_mcp_client.list_tools_sync()
-
-    bda_agent = Agent( 
-        name="bda_agent",
-        system_prompt=BDA_AGENT_ASSISTANT_SYSTEM_PROMPT,
-        model=bedrock_model,
-        tools=tools,
-    )
+# Initialize agent with MCP client properly managed
+bda_agent = Agent( 
+    name="bda_agent",
+    system_prompt=BDA_AGENT_ASSISTANT_SYSTEM_PROMPT,
+    model=bedrock_model,
+    tools=[bda_mcp_client],  # Pass the MCP client directly as a tool
+)
