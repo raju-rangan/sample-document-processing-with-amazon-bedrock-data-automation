@@ -109,6 +109,7 @@ with kb_retrieval_mcp_client:
     tools = kb_retrieval_mcp_client.list_tools_sync()
 
     kb_retrieval_agent = Agent(
+        node_id="kb_retrieval_agent",
         system_prompt=KB_RETRIEVAL_AGENT_ASSISTANT_SYSTEM_PROMPT,
         model=bedrock_model,
         tools=tools,

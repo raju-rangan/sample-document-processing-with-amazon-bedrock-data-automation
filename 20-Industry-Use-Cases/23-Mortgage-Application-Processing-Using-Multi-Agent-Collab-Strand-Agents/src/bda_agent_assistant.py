@@ -90,6 +90,7 @@ with bda_mcp_client:
     tools = bda_mcp_client.list_tools_sync()
 
     bda_agent = Agent( 
+        node_id="bda_agent",
         system_prompt=BDA_AGENT_ASSISTANT_SYSTEM_PROMPT,
         model=bedrock_model,
         tools=tools,
