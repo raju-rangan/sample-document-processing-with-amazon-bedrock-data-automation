@@ -2,15 +2,16 @@ FROM public.ecr.aws/docker/library/python:3.13-slim
 WORKDIR /app
 
 # Install system dependencies if needed
-
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy entire project (respecting .dockerignore)
 COPY . .
 
 # Install dependencies
-
-
-
+# Install uvx for running MCP servers
+RUN python -m pip install --no-cache-dir uv
 
 # Install from requirements file
 RUN python -m pip install --no-cache-dir -r requirements.txt
