@@ -99,7 +99,7 @@ with dynamo_mcp_client:
     tools = dynamo_mcp_client.list_tools_sync()
 
     dynamodb_agent = Agent(
-        node_id="dynamodb_agent",
+        name="dynamodb_agent",
         system_prompt=DYNAMODB_AGENT_ASSISTANT_SYSTEM_PROMPT,
         model=bedrock_model,
         tools=tools,
