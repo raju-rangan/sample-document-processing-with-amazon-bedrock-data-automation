@@ -22,4 +22,5 @@ agents:
       agent_arn: arn:aws:bedrock-agentcore:us-west-2:145023138732:runtime/main-4mv1tO32lm
       agent_session_id: 7993c527-d45a-4d99-876a-b18e134466d9
     authorizer_configuration: null
-    oauth_configuration: null
+    oauth_configuration:
+      workload_name: workload-27fae46b
