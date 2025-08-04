@@ -1,13 +1,16 @@
-.PHONY: init plan apply destroy
+IAM_ROLE_ARN = ""
 
-init: ## Initialize Terraform
+terraform-init:
 	cd terraform && terraform init
 
-plan: ## Plan Terraform deployment
-	cd terraform && terraform plan
+terraform-apply: terraform-init
+	cd terraform && terraform apply --auto-approve
 
-apply: ## Apply Terraform configuration
-	cd terraform && terraform apply
-
-destroy: ## Destroy infrastructure
+terraform-destroy:
 	cd terraform && terraform destroy
+
+agentcore_configure:
+	cd src && agentcore configure --entrypoint main.py -er $(IAM_ROLE_ARN)
+
+agentcore_launch:
+	cd src && agentcore launch --env AWS_BUCKET_NAME=bedrock-data-automation-store20250802224427805500000002

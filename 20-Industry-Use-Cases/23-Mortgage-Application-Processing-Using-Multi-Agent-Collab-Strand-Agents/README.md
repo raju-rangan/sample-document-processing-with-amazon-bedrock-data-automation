@@ -2,10 +2,16 @@
 
 ## Getting Started
 
-### Run Locally
+### Deploy infrastructure
 
 ```sh
-agentcore configure --entrypoint my_agent.py -er <IAM_ROLE_ARN>
+make terraform-apply
+```
+
+### Deploy Agent via AgentCore
+
+```sh
+agentcore configure --entrypoint main.py -er <IAM_ROLE_ARN>
 ```
 
 ```sh

@@ -4,16 +4,18 @@ from strands.tools.mcp import MCPClient
 import boto3
 from strands.models import BedrockModel
 from mcp import stdio_client, StdioServerParameters
+import os
 
-
-BDA_AGENT_ASSISTANT_SYSTEM_PROMPT = """
-You are a Bedrock Data Automation (BDA) Specialist Agent focused on mortgage document processing and data extraction.
+DATA_EXTRACTION_SYSTEM_PROMPT = """
+You are a data analyst specialist agent focused on mortgage document processing and data extraction.
+ALWAYS use the morgage-application-processing bedrock data automation project.
 
 ## Core Expertise
-- **Document Processing**: Extract structured data from mortgage-related documents
+- **Document Processing**: Extract both structured and unstructured data from mortgage-related documents
 - **Format Handling**: Process PDFs, images, scanned documents, and digital forms
 - **Data Validation**: Verify completeness and accuracy of extracted information
 - **Quality Assurance**: Ensure high precision in data extraction for financial decisions
+- **Dual Data Export**: Export both structured data (JSON/tabular format) and unstructured data (raw text, annotations, metadata)
 
 ## Mortgage Document Types You Process
 - **Loan Applications**: 1003 forms, borrower information, loan details
@@ -49,11 +51,20 @@ You are a Bedrock Data Automation (BDA) Specialist Agent focused on mortgage doc
 - **Compliance**: Adhere to mortgage industry data standards
 
 ## Output Format
-Provide structured JSON output with:
-- Extracted data organized by category
+Provide both structured and unstructured data exports:
+
+### Structured Data Export
+- Extracted data organized by category in tabular format
 - Confidence scores for each data point
 - Flags for missing or questionable information
 - Recommendations for additional documentation needed
+
+### Unstructured Data Export
+- Raw text content from documents
+- Document metadata (creation date, author, file properties)
+- Annotations and comments found in documents
+- Formatting information and layout details
+- Any handwritten notes or marginalia identified
 
 ## Error Handling
 - Clearly identify documents that cannot be processed
@@ -71,7 +82,7 @@ Focus on precision, completeness, and regulatory compliance in all document proc
 """
 
 session = boto3.Session(
-    region_name='us-west-2',
+    region_name=os.environ.get('AWS_REGION','us-east-1'),
 )
 
 bedrock_model = BedrockModel(
@@ -83,13 +94,22 @@ bda_mcp_client = MCPClient(lambda: stdio_client(
     StdioServerParameters(
         command="uvx", 
         args=["awslabs.aws-bedrock-data-automation-mcp-server@latest"],
+        env={
+            'AWS_REGION': os.environ.get('AWS_REGION', 'us-east-1'),
+            'AWS_BUCKET_NAME': os.environ.get('AWS_BUCKET_NAME', ''),
+            'AWS_ACCESS_KEY_ID': os.environ.get('AWS_ACCESS_KEY_ID', ''),
+            'AWS_SECRET_ACCESS_KEY': os.environ.get('AWS_SECRET_ACCESS_KEY', ''),
+            'AWS_SESSION_TOKEN': os.environ.get('AWS_SESSION_TOKEN', ''),
+            "UV_CONSTRAINT": "requirements.txt"
+        }
     )
 ))
 
-# Initialize agent with MCP client properly managed
-bda_agent = Agent( 
-    name="bda_agent",
-    system_prompt=BDA_AGENT_ASSISTANT_SYSTEM_PROMPT,
+bda_mcp_client.start()
+
+data_extraction_agent = Agent( 
+    name="data_extraction_agent",
+    system_prompt=DATA_EXTRACTION_SYSTEM_PROMPT,
     model=bedrock_model,
-    tools=[bda_mcp_client],  # Pass the MCP client directly as a tool
+    tools=bda_mcp_client.list_tools_sync(),
 )

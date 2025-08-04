@@ -1,356 +1,302 @@
-locals {
-  common_tags = merge(
-    {
-      Project     = var.project_name
-      ManagedBy   = "terraform"
-    }
-  )
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+module "raw_s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 5.2.0"
+
+  bucket_prefix = "raw-document-store"
+  acl    = "private"
+  force_destroy = true
+
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
 }
 
-#######################
-# S3 Buckets
-#######################
+module "bda_s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 5.2.0"
 
-resource "aws_s3_bucket" "document_storage" {
-  bucket = "${var.project_name}-${var.document_bucket_name}-${random_id.bucket_suffix.hex}"
+  bucket_prefix = "bedrock-data-automation-store"
+  acl    = "private"
+  force_destroy = true
   
-  tags = merge(local.common_tags, {
-    Type = "DocumentStorage"
-  })
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
 }
 
-resource "random_id" "bucket_suffix" {
-  byte_length = 4
+module "kb_s3_bucket" {
+  source = "terraform-aws-modules/s3-bucket/aws"
+  version = "~> 5.2.0"
+
+  bucket_prefix = "bedrock-knowledge-base-store"
+  acl    = "private"
+  force_destroy = true
+  
+  control_object_ownership = true
+  object_ownership         = "ObjectWriter"
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "document_storage" {
-  bucket = aws_s3_bucket.document_storage.id
+module "applications_dynamodb_table" {
+  source   = "terraform-aws-modules/dynamodb-table/aws"
+  version = "~> 5.0.0"
 
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+  name     = "mortgage-applications"
+  hash_key = "application_id"
+
+  attributes = [
+    {
+      name = "application_id"
+      type = "S"
+    },
+    {
+      name = "borrower_name" 
+      type = "S"
+    },
+    {
+      name = "status"
+      type = "S"
+    },
+    {
+      name = "application_date"
+      type = "S"
+    },
+    {
+      name = "loan_originator_id"
+      type = "S"
+    },
+    {
+      name = "property_state"
+      type = "S"
+    },
+    {
+      name = "loan_amount"
+      type = "N"
+    },
+    {
+      name = "ssn"
+      type = "S"
     }
-    bucket_key_enabled = true
+  ]
+
+  global_secondary_indexes = [
+    {
+      name            = "borrower-name-index"
+      hash_key        = "borrower_name"
+      projection_type = "ALL"
+    },
+    {
+      name            = "status-date-index"
+      hash_key        = "status"
+      range_key       = "application_date"
+      projection_type = "ALL"
+    },
+    {
+      name            = "loan-originator-index"
+      hash_key        = "loan_originator_id"
+      range_key       = "application_date"
+      projection_type = "ALL"
+    },
+    {
+      name            = "property-state-index"
+      hash_key        = "property_state"
+      range_key       = "application_date"
+      projection_type = "KEYS_ONLY"
+    },
+    {
+      name            = "loan-amount-index"
+      hash_key        = "status"
+      range_key       = "loan_amount"
+      projection_type = "KEYS_ONLY"
+    },
+    {
+      name            = "ssn-lookup-index"
+      hash_key        = "ssn"
+      projection_type = "ALL"
+    }
+  ]
+
+  billing_mode = "PAY_PER_REQUEST"
+  point_in_time_recovery_enabled = true
+  server_side_encryption_enabled = true
+
+  tags = {
+    Terraform   = "true"
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "document_storage" {
-  bucket = aws_s3_bucket.document_storage.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-#######################
-# IAM Roles and Policies
-#######################
-
-resource "aws_iam_role" "lambda_execution_role" {
+resource "aws_iam_role" "agentcore_role" {
+  name = "agentcore-${var.agent_name}-iam-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Action = "sts:AssumeRole"
+        Sid = "AssumeRolePolicy"
         Effect = "Allow"
         Principal = {
-          Service = "lambda.amazonaws.com"
+          Service = "bedrock-agentcore.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+        Condition = {
+          StringEquals = {
+            "aws:SourceAccount" = data.aws_caller_identity.current.account_id
+          }
+          ArnLike = {
+            "aws:SourceArn" = "arn:aws:bedrock-agentcore:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:*"
+          }
         }
       }
     ]
   })
 
-  tags = local.common_tags
+  tags = {
+    Terraform   = "true"
+  }
 }
 
-resource "aws_iam_role_policy" "lambda_execution_policy" {
-  role = aws_iam_role.lambda_execution_role.id
-
+resource "aws_iam_role_policy" "agentcore_policy" {
+  name = "agentcore-${var.agent_name}-policy"
+  role = aws_iam_role.agentcore_role.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
+        Sid = "BedrockPermissions"
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid = "ECRImageAccess"
+        Effect = "Allow"
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer"
+        ]
+        Resource = "arn:aws:ecr:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:repository/*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:DescribeLogStreams",
+          "logs:CreateLogGroup"
+        ]
+        Resource = "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/aws/bedrock-agentcore/runtimes/*"
+      },
+      {
+        Effect = "Allow"
+        Action = ["logs:DescribeLogGroups"]
+        Resource = "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Resource = "arn:aws:logs:*:*:*"
+        Resource = "arn:aws:logs:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*"
+      },
+      {
+        Sid = "ECRTokenAccess"
+        Effect = "Allow"
+        Action = ["ecr:GetAuthorizationToken"]
+        Resource = "*"
       },
       {
         Effect = "Allow"
         Action = [
-          "s3:GetObject",
-          "s3:GetObjectVersion",
-          "s3:HeadObject"
+          "xray:PutTraceSegments",
+          "xray:PutTelemetryRecords",
+          "xray:GetSamplingRules",
+          "xray:GetSamplingTargets"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Resource = "*"
+        Action = "cloudwatch:PutMetricData"
+        Condition = {
+          StringEquals = {
+            "cloudwatch:namespace" = "bedrock-agentcore"
+          }
+        }
+      },
+      {
+        Sid = "GetAgentAccessToken"
+        Effect = "Allow"
+        Action = [
+          "bedrock-agentcore:GetWorkloadAccessToken",
+          "bedrock-agentcore:GetWorkloadAccessTokenForJWT",
+          "bedrock-agentcore:GetWorkloadAccessTokenForUserId"
         ]
         Resource = [
-          "${aws_s3_bucket.document_storage.arn}/*"
+          "arn:aws:bedrock-agentcore:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:workload-identity-directory/default",
+          "arn:aws:bedrock-agentcore:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:workload-identity-directory/default/workload-identity/${var.agent_name}-*"
         ]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role" "bedrock_service_role" {
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
+      },
       {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "bedrock.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  tags = local.common_tags
-}
-
-resource "aws_iam_role_policy" "bedrock_service_policy" {
-  role = aws_iam_role.bedrock_service_role.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
+        Sid = "S3AccessRaw"
         Effect = "Allow"
         Action = [
           "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
           "s3:ListBucket"
         ]
         Resource = [
-          aws_s3_bucket.document_storage.arn,
-          "${aws_s3_bucket.document_storage.arn}/*"
+          module.raw_s3_bucket.s3_bucket_arn,
+          "${module.raw_s3_bucket.s3_bucket_arn}/*"
         ]
       },
       {
+        Sid = "S3AccessBDA"
         Effect = "Allow"
         Action = [
-          "bedrock:InvokeModel"
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
         ]
-        Resource = var.bedrock_model_arn
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "aoss:APIAccessAll"
-        ]
-        Resource = "*"
-      }
-    ]
-  })
-}
-
-#######################
-# Lambda Function
-#######################
-
-data "archive_file" "lambda_zip" {
-  type        = "zip"
-  output_path = "${path.module}/document_processor.zip"
-  source {
-    content = templatefile("${path.module}/lambda/document_processor.py", {
-      webhook_url = var.webhook_url
-    })
-    filename = "index.py"
-  }
-}
-
-resource "aws_cloudwatch_log_group" "lambda_logs" {
-  name              = "/aws/lambda/document-processor"
-  retention_in_days = 7
-
-  tags = local.common_tags
-}
-
-resource "aws_lambda_function" "document_processor" {
-  filename         = data.archive_file.lambda_zip.output_path
-  function_name    = "document-processor"
-  role            = aws_iam_role.lambda_execution_role.arn
-  handler         = "index.handler"
-  runtime         = "python3.13"
-  timeout         = 60
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
-
-  environment {
-    variables = {
-      WEBHOOK_URL = var.webhook_url
-      DOCUMENT_BUCKET = aws_s3_bucket.document_storage.bucket
-    }
-  }
-
-  depends_on = [
-    aws_iam_role_policy.lambda_execution_policy,
-    aws_cloudwatch_log_group.lambda_logs
-  ]
-
-  tags = local.common_tags
-}
-
-resource "aws_lambda_permission" "allow_s3" {
-  statement_id  = "AllowExecutionFromS3Bucket"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.document_processor.function_name
-  principal     = "s3.amazonaws.com"
-  source_arn    = aws_s3_bucket.document_storage.arn
-}
-
-#######################
-# S3 Event Notification
-#######################
-
-resource "aws_s3_bucket_notification" "document_upload_notification" {
-  bucket = aws_s3_bucket.document_storage.id
-
-  lambda_function {
-    lambda_function_arn = aws_lambda_function.document_processor.arn
-    events              = ["s3:ObjectCreated:*"]
-  }
-
-  depends_on = [aws_lambda_permission.allow_s3]
-}
-
-#######################
-# Bedrock Knowledge Base
-#######################
-
-# Bedrock Knowledge Base - Commented out temporarily due to index creation issue
-# resource "aws_bedrockagent_knowledge_base" "document_kb" {
-#   name     = "${var.knowledge_base_name}"
-#   role_arn = aws_iam_role.bedrock_service_role.arn
-#   
-#   knowledge_base_configuration {
-#     vector_knowledge_base_configuration {
-#       embedding_model_arn = var.bedrock_model_arn
-#     }
-#     type = "VECTOR"
-#   }
-#   
-#   storage_configuration {
-#     type = "OPENSEARCH_SERVERLESS"
-#     opensearch_serverless_configuration {
-#       collection_arn    = aws_opensearchserverless_collection.vector_collection.arn
-#       vector_index_name = "bedrock-knowledge-base-default-index"
-#       field_mapping {
-#         vector_field   = "bedrock-knowledge-base-default-vector"
-#         text_field     = "AMAZON_BEDROCK_TEXT_CHUNK"
-#         metadata_field = "AMAZON_BEDROCK_METADATA"
-#       }
-#     }
-#   }
-
-#   depends_on = [
-#     aws_opensearchserverless_collection.vector_collection,
-#     aws_opensearchserverless_access_policy.vector_collection_access,
-#     aws_opensearchserverless_security_policy.vector_collection_encryption,
-#     aws_opensearchserverless_security_policy.vector_collection_network
-#   ]
-
-#   tags = local.common_tags
-# }
-
-# OpenSearch Serverless Collection for vector storage
-resource "aws_opensearchserverless_collection" "vector_collection" {
-  name = "vector-collection"
-  type = "VECTORSEARCH"
-
-  tags = local.common_tags
-}
-
-# OpenSearch Serverless Security Policy
-resource "aws_opensearchserverless_security_policy" "vector_collection_encryption" {
-  name = "vector-collection-encryption"
-  type = "encryption"
-  policy = jsonencode({
-    Rules = [
-      {
         Resource = [
-          "collection/vector-collection"
+          module.bda_s3_bucket.s3_bucket_arn,
+          "${module.bda_s3_bucket.s3_bucket_arn}/*"
         ]
-        ResourceType = "collection"
+      },
+      {
+        Sid = "S3AccessKB"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          module.kb_s3_bucket.s3_bucket_arn,
+          "${module.kb_s3_bucket.s3_bucket_arn}/*"
+        ]
+      },
+      {
+        Sid = "DynamoDBAccess"
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:Query",
+          "dynamodb:Scan",
+          "dynamodb:UpdateItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:BatchGetItem"
+        ]
+        Resource = module.applications_dynamodb_table.dynamodb_table_arn
       }
     ]
-    AWSOwnedKey = true
   })
+  
 }
-
-resource "aws_opensearchserverless_security_policy" "vector_collection_network" {
-  name = "vector-collection-network"
-  type = "network"
-  policy = jsonencode([
-    {
-      Rules = [
-        {
-          Resource = [
-            "collection/vector-collection"
-          ]
-          ResourceType = "collection"
-        }
-      ]
-      AllowFromPublic = true
-    }
-  ])
-}
-
-# Data Access Policy for Bedrock
-resource "aws_opensearchserverless_access_policy" "vector_collection_access" {
-  name = "vector-collection-access"
-  type = "data"
-  policy = jsonencode([
-    {
-      Rules = [
-        {
-          Resource = [
-            "collection/vector-collection"
-          ]
-          Permission = [
-            "aoss:CreateCollectionItems",
-            "aoss:DeleteCollectionItems",
-            "aoss:UpdateCollectionItems",
-            "aoss:DescribeCollectionItems"
-          ]
-          ResourceType = "collection"
-        },
-        {
-          Resource = [
-            "index/vector-collection/*"
-          ]
-          Permission = [
-            "aoss:CreateIndex",
-            "aoss:DeleteIndex",
-            "aoss:UpdateIndex",
-            "aoss:DescribeIndex",
-            "aoss:ReadDocument",
-            "aoss:WriteDocument"
-          ]
-          ResourceType = "index"
-        }
-      ]
-      Principal = [
-        aws_iam_role.bedrock_service_role.arn
-      ]
-    }
-  ])
-}
-
-# Bedrock Knowledge Base Data Source - Commented out temporarily
-# resource "aws_bedrockagent_data_source" "document_data_source" {
-#   knowledge_base_id = aws_bedrockagent_knowledge_base.document_kb.id
-#   name              = "document-data-source"
-#   
-#   data_source_configuration {
-#     type = "S3"
-#     s3_configuration {
-#       bucket_arn = aws_s3_bucket.document_storage.arn
-#     }
-#   }
-
-#   depends_on = [
-#     aws_opensearchserverless_collection.vector_collection
-#   ]
-# }

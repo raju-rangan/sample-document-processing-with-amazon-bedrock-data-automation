@@ -1,8 +1,11 @@
 fastmcp==2.10.5
 pydantic==2.11.7
-boto3==1.39.4
+boto3==1.39.14
 httpx==0.28.1
-strands-agents==1.0.1
-strands-agents-tools==0.2.1
-bedrock-agentcore==0.1.0
-bedrock-agentcore-starter-toolkit==0.1.0
+strands-agents==1.2.0
+strands-agents-tools==0.2.3
+bedrock-agentcore==0.1.1
+aws-opentelemetry-distro==0.10.1
+bedrock-agentcore-starter-toolkit==0.1.1
+uv==0.8.3
+mcp==1.12.2

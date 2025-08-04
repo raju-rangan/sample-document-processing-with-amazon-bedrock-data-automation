@@ -7,9 +7,10 @@ agents:
     container_runtime: docker
     aws:
       execution_role: arn:aws:iam::145023138732:role/agentcore-main-role
+      execution_role_auto_create: false
       account: '145023138732'
-      region: eu-central-1
-      ecr_repository: 145023138732.dkr.ecr.us-west-2.amazonaws.com/bedrock_agentcore-main
+      region: us-east-1
+      ecr_repository: 145023138732.dkr.ecr.us-east-1.amazonaws.com/bedrock_agentcore-main
       ecr_auto_create: false
       network_configuration:
         network_mode: PUBLIC
@@ -18,9 +19,13 @@ agents:
       observability:
         enabled: false
     bedrock_agentcore:
-      agent_id: main-4mv1tO32lm
-      agent_arn: arn:aws:bedrock-agentcore:us-west-2:145023138732:runtime/main-4mv1tO32lm
-      agent_session_id: 7993c527-d45a-4d99-876a-b18e134466d9
+      agent_id: main-C8ZCR3BtkJ
+      agent_arn: arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/main-C8ZCR3BtkJ
+      agent_session_id: 5af39077-3e8d-4398-9fca-b6000118b3e9
+    codebuild:
+      project_name: null
+      execution_role: null
+      source_bucket: null
     authorizer_configuration: null
     oauth_configuration:
-      workload_name: workload-27fae46b
+      workload_name: workload-0e6b8599
