@@ -5,6 +5,6 @@ variable "aws_region" {
 
 variable "agent_name" {
   description = "AgentCore name"
-  default = "main"
+  default = "dev"
   type        = string
 }

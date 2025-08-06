@@ -62,7 +62,14 @@ async def process_mortgage(payload):
 
     result = await swarm.invoke_async(content_blocks)
 
-    return { "Status": str(result.status) }
+    response = {}
+    response["Status"] = str(result.status)
+    response["NodeHistory"] = str(result.node_history)
+
+    for node in result.node_history:
+        response[node.node_id] = result.results[node.node_id].result
+
+    return response
     
 if __name__ == '__main__':
     app.run()

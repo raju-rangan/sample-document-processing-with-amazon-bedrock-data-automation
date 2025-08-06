@@ -165,8 +165,7 @@ resource "aws_iam_role_policy" "agentcore_policy" {
         Sid = "BedrockPermissions"
         Effect = "Allow"
         Action = [
-          "bedrock:InvokeModel",
-          "bedrock:InvokeModelWithResponseStream"
+          "bedrock:*",
         ]
         Resource = "*"
       },
@@ -268,6 +267,14 @@ resource "aws_iam_role_policy" "agentcore_policy" {
         ]
       },
       {
+            Sid = "ListAllS3"
+            Effect = "Allow",
+            Action = "s3:ListAllMyBuckets",
+            Resource = [
+              "arn:aws:s3:::*"
+            ]
+      },
+      {
         Sid = "S3AccessKB"
         Effect = "Allow"
         Action = [
@@ -287,16 +294,48 @@ resource "aws_iam_role_policy" "agentcore_policy" {
         Action = [
           "dynamodb:GetItem",
           "dynamodb:PutItem",
-          "dynamodb:DeleteItem",
           "dynamodb:Query",
           "dynamodb:Scan",
-          "dynamodb:UpdateItem",
           "dynamodb:BatchWriteItem",
-          "dynamodb:BatchGetItem"
+          "dynamodb:BatchGetItem",
+          "dynamodb:ListTables"
         ]
         Resource = module.applications_dynamodb_table.dynamodb_table_arn
       }
     ]
   })
   
+}
+
+module "agentcore_ecr" {
+  source = "terraform-aws-modules/ecr/aws"
+  version = "~> 2.4.0"
+
+  repository_name = "bedrock_agentcore-${var.agent_name}"
+
+  repository_read_write_access_arns = [aws_iam_role.agentcore_role.arn]
+
+  repository_image_tag_mutability = "MUTABLE"
+  
+  repository_lifecycle_policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1,
+        description  = "Keep last 30 images",
+        selection = {
+          tagStatus     = "tagged",
+          tagPrefixList = ["v"],
+          countType     = "imageCountMoreThan",
+          countNumber   = 30
+        },
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Terraform   = "true"
+  }
 }

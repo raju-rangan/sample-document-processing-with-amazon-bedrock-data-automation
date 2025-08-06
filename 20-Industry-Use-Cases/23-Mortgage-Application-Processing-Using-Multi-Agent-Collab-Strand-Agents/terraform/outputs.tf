@@ -14,6 +14,12 @@ output "kb_s3_bucket_name" {
 }
 
 output "agentcore_iam_role_name" {
-  description = "The name of the IAM role for agentcore"
-  value       = aws_iam_role.agentcore_role.name
+    description = "The name of the IAM role for agentcore"
+    value       = aws_iam_role.agentcore_role.name
 }
+
+output "agentcore_ecr_repository_url" {
+    description = "The name of the ECR repo url for agentcore"
+    value       = module.agentcore_ecr.repository_url
+}
+

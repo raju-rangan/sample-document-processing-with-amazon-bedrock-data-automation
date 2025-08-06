@@ -8,7 +8,7 @@ import os
 
 
 
-STORAGE_AGENT_SYSTEM_PROMPT = """
+VALIDATION_AGENT_SYSTEM_PROMPT = """
 <context>
 You are a data storage agent for mortgage application automation. 
 - Automation source: Bedrock data pipeline (input JSON or multipart/form format).
@@ -88,43 +88,8 @@ bedrock_model = BedrockModel(
     boto_session=session,
 )
 
-aws_api_mcp_client = MCPClient(lambda: stdio_client(
-    StdioServerParameters(
-        command="uvx", 
-        args=["awslabs.aws-api-mcp-server@latest"],
-        env={
-            'AWS_REGION': os.environ.get('AWS_REGION', 'us-east-1'),
-            'AWS_ACCESS_KEY_ID': os.environ.get('AWS_ACCESS_KEY_ID', ''),
-            'AWS_SECRET_ACCESS_KEY': os.environ.get('AWS_SECRET_ACCESS_KEY', ''),
-            'AWS_SESSION_TOKEN': os.environ.get('AWS_SESSION_TOKEN', ''),
-            "UV_CONSTRAINT": "requirements.txt"
-        }
-    )
-))
-
-dynamo_mcp_client = MCPClient(lambda: stdio_client(
-    StdioServerParameters(
-        command="uvx", 
-        args=["awslabs.dynamodb-mcp-server@latest"],
-        env={
-            'AWS_REGION': os.environ.get('AWS_REGION', 'us-east-1'),
-            'AWS_ACCESS_KEY_ID': os.environ.get('AWS_ACCESS_KEY_ID', ''),
-            'AWS_SECRET_ACCESS_KEY': os.environ.get('AWS_SECRET_ACCESS_KEY', ''),
-            'AWS_SESSION_TOKEN': os.environ.get('AWS_SESSION_TOKEN', ''),
-            "UV_CONSTRAINT": "requirements.txt"
-        }
-    )
-))
-
-dynamo_mcp_client.start()
-
-aws_api_mcp_client.start()
-
-tools = dynamo_mcp_client.list_tools_sync() + aws_api_mcp_client.list_tools_sync()
-
-storage_agent = Agent(
-    name="storage_agent",
-    system_prompt=STORAGE_AGENT_SYSTEM_PROMPT,
+validation_agent = Agent(
+    name="validation_agent",
+    system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
     model=bedrock_model,
-    tools=tools,
 )

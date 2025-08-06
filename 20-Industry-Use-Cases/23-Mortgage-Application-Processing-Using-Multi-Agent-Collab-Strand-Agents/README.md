@@ -1,5 +1,7 @@
 #
 
+![architecture](./assets/arch.drawio.png)
+
 ## Getting Started
 
 ### Deploy infrastructure
@@ -27,3 +29,5 @@ And launch it to AWS:
 ```sh
 agentcore launch
 ```
+
+### Test the agent
