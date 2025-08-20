@@ -229,13 +229,10 @@ resource "aws_iam_role_policy" "agentcore_policy" {
         Sid = "GetAgentAccessToken"
         Effect = "Allow"
         Action = [
-          "bedrock-agentcore:GetWorkloadAccessToken",
-          "bedrock-agentcore:GetWorkloadAccessTokenForJWT",
-          "bedrock-agentcore:GetWorkloadAccessTokenForUserId"
+          "bedrock-agentcore:*",
         ]
         Resource = [
-          "arn:aws:bedrock-agentcore:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:workload-identity-directory/default",
-          "arn:aws:bedrock-agentcore:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:workload-identity-directory/default/workload-identity/${var.agent_name}-*"
+          "*"
         ]
       },
       {
@@ -298,9 +295,13 @@ resource "aws_iam_role_policy" "agentcore_policy" {
           "dynamodb:Scan",
           "dynamodb:BatchWriteItem",
           "dynamodb:BatchGetItem",
-          "dynamodb:ListTables"
+          "dynamodb:ListTables",
+          "dynamodb:DescribeTable"
         ]
-        Resource = module.applications_dynamodb_table.dynamodb_table_arn
+        Resource = [ 
+          module.applications_dynamodb_table.dynamodb_table_arn,
+          "${module.applications_dynamodb_table.dynamodb_table_arn}/index/*"
+        ]
       }
     ]
   })
@@ -336,6 +337,54 @@ module "agentcore_ecr" {
   })
 
   tags = {
+    Terraform   = "true"
+  }
+}
+
+module "mortgage_applications_lambda" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 8.0"
+
+  function_name = "mortgage-applications-crud"
+  description   = "CRUD operations for mortgage applications"
+  handler       = "main.lambda_handler"
+  runtime       = "python3.12"
+  timeout       = 30
+  memory_size   = 256
+  publish       = true
+
+  source_path = "${path.module}/lambda"
+
+  environment_variables = {
+    TABLE_NAME = "mortgage-applications"
+  }
+
+  attach_policy_statements = true
+  policy_statements = {
+    dynamodb = {
+      effect = "Allow"
+      actions = [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan",
+        "dynamodb:Query"
+      ]
+      resources = [
+        "arn:aws:dynamodb:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:table/mortgage-applications",
+        "arn:aws:dynamodb:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:table/mortgage-applications/index/*"
+      ]
+    }
+  }
+
+  cloudwatch_logs_retention_in_days = 14
+
+  create_lambda_function_url = false
+  
+  tags = {
+    Name        = "mortgage-applications-crud"
+    Environment = "production"
     Terraform   = "true"
   }
 }

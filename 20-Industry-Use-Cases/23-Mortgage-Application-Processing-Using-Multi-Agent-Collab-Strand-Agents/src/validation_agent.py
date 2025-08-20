@@ -1,82 +1,36 @@
-from strands import Agent, tool
 from strands import Agent
-from strands.tools.mcp import MCPClient
+from strands import Agent
 import boto3
 from strands.models import BedrockModel
-from mcp import stdio_client, StdioServerParameters
 import os
 
 
 
 VALIDATION_AGENT_SYSTEM_PROMPT = """
 <context>
-You are a data storage agent for mortgage application automation. 
-- Automation source: Bedrock data pipeline (input JSON or multipart/form format).
-- DynamoDB table: mortgage-applications (as schema above; indexes listed).
-- S3 bucket for unstructured data: bedrock-knowledge-base-store20250804092513552000000001
-- Primary audience: DevOps and backend engineers.
-- Output format: markdown, clear headings and bullet points.
-- Never include credentials or expose S3 bucket names publicly beyond storage references.
+You are a data validation agent embedded in a mortgage automation system. Your task is to:
+- Analyze structured and unstructured data extracted from mortgage requests.
+- Validate each field for completeness, factual accuracy, format compliance, and logical consistency.
+- Flag missing, inconsistent, or suspicious data and provide a reasoned explanation for each issue.
 </context>
 
 <instructions>
-1. Receive mortgage request results from a Bedrock data pipeline.
-2. Parse and classify all incoming data into:
-   - Structured data: fields matching the defined DynamoDB schema.
-   - Unstructured data: document scans, images, PDFs, long text fields, or notes.
-3. Store structured data to the DynamoDB table "mortgage-applications" with the following schema:
-   - hash_key: application_id (String)
-   - borrower_name (String)
-   - status (String)
-   - application_date (String in ISO 8601 format, e.g. "2025-07-03T14:30:00Z")
-   - loan_originator_id (String)
-   - property_state (String, US State code or locality)
-   - loan_amount (Number)
-   - ssn (String, store securely, never log or display in output)
-   - The primary key for DynamoDB writes is application_id.
-4. Populate and use the following global secondary indexes:
-   - borrower-name-index (borrower_name)
-   - status-date-index (status, application_date)
-   - loan-originator-index (loan_originator_id, application_date)
-   - property-state-index (property_state, application_date)
-   - loan-amount-index (status, loan_amount)
-   - ssn-lookup-index (ssn)
-5. Store unstructured data in the S3 bucket **bedrock-knowledge-base-store20250804092513552000000001**, using keys that include application_id, document type, and timestamp for traceability.
-6. In DynamoDB, log S3 keys and content type as additional application record attributes, ensuring all mortgage application records can be traced to associated unstructured assets.
-7. If a request is incomplete (required fields missing), mark status as "incomplete" and record the reason in the log. Do not store incomplete requests in secondary indexes except as required for traceability.
-8. Ensure all operations are idempotent: repeated submissions with the same application_id do NOT create duplicates.
-9. Apply data privacy: never display or log SSNs, full document images, or sensitive PII in outputs or logs; only keep required references (such as S3 key or masked ssn).
-10. All confirmation messages must recap the application_id, storage status for DynamoDB and S3, and note any incomplete or error state.
+- For every item, use the following output format:
+  - <thinking>Step-by-step logic and evidence justifying your validation (if applicable).</thinking>
+  - <result>“Valid” or “Invalid”</result>
+  - <explanation>Brief explanation. If invalid, state the specific problem and suggest a correction if possible.</explanation>
+- If you are unsure or the data is ambiguous, respond with “Uncertain” and briefly explain why.
+- Do not invent information or assume facts not present in the data.
+- If you recognize any sensitive or personal data, flag according to privacy best practices.
 </instructions>
 
-<examples>
-Example 1: 
-Input: { "application_id": "12345", "borrower_name": "John Doe", "status": "submitted", "application_date": "2025-07-03T12:00:00Z", "loan_originator_id": "orig001", "property_state": "CA", "loan_amount": 800000, "ssn": "XXX-XX-6789", "documents": [file.pdf] }
-Output:
-- Structured data stored in mortgage-applications: application_id, borrower_name, status, application_date, loan_originator_id, property_state, loan_amount, masked ssn.
-- S3 object saved: bedrock-knowledge-base-store20250804092513552000000001/mortgage-applications/12345/documents/file-20250703T120000.pdf
-- S3 key reference included in DynamoDB record.
-- All relevant indexes updated.
-- Confirmation for application_id: 12345, status: success.
-
-Example 2:
-Input: { "application_id": "56789", "borrower_name": "Jane Smith", "status": "pending", "ssn": "XXX-XX-5432" }
-Output: 
-- Structured data stored in mortgage-applications: application_id, borrower_name, status, masked ssn. application_date and other required fields missing.
-- Mark status as "incomplete"; note missing fields in DynamoDB log.
-- No unstructured data present.
-- Confirmation for application_id: 56789, status: incomplete.
-</examples>
-
-<output_format>
-Always confirm with:
-- Status: "success", "incomplete", or "error"
-- application_id processed
-- DynamoDB fields stored (list field names, never raw values for ssn)
-- S3 keys used (if any)
-- Notes on incomplete or error state
-- Never return full SSN or document contents in output.
-</output_format>
+<validation_rules>
+- Extract numerical values as numbers, not strings
+- Verify SSN format: XXX-XX-XXXX
+- Validate positive loan amounts
+- Use date format: YYYY-MM-DD
+- Set requires_review: true for unclear/incomplete data
+</validation_rules>
 """
 
 session = boto3.Session(
@@ -88,8 +42,8 @@ bedrock_model = BedrockModel(
     boto_session=session,
 )
 
-validation_agent = Agent(
-    name="validation_agent",
-    system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
-    model=bedrock_model,
-)
+# validation_agent = Agent(
+#     name="validation_agent",
+#     system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
+#     model=bedrock_model,
+# )

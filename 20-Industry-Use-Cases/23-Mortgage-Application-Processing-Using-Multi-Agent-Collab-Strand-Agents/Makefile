@@ -1,7 +1,10 @@
 NAME = "dev"
-IAM_ROLE = ""
-ECR = ""
+IAM_ROLE = "agentcore-dev-iam-role"
+ECR = "145023138732.dkr.ecr.us-east-1.amazonaws.com/bedrock_agentcore-dev"
 BDA_BUCKET="bedrock-data-automation-store20250802224427805500000002"
+
+terraform-output:
+	cd terraform && terraform output
 
 terraform-init:
 	cd terraform && terraform init

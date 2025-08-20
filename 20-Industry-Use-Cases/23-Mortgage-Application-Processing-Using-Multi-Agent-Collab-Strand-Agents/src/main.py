@@ -1,36 +1,67 @@
-from data_extraction_agent import data_extraction_agent
-from storage_agent import storage_agent
+import json
+from data_extraction_agent import DATA_EXTRACTION_SYSTEM_PROMPT, bda_mcp_client
+from strands import Agent
+from validation_agent import VALIDATION_AGENT_SYSTEM_PROMPT
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands.multiagent import Swarm
 from strands.types.content import ContentBlock
 import boto3
+from strands.multiagent import GraphBuilder
+from storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT, mcp_client, aws_api_mcp_client
 import os
 
 import logging
 
 
-logging.getLogger("strands.multiagent").setLevel(logging.INFO)
+logging.getLogger("strands").setLevel(logging.INFO)
 
 logging.basicConfig(
     format="%(levelname)s | %(name)s | %(message)s",
     handlers=[logging.StreamHandler()]
 )
 
-main_log = logging.getLogger("orchestration")
-
 app = BedrockAgentCoreApp()
 
-agents = [data_extraction_agent, storage_agent]
+async def invoke_graph(prompt):
+    with mcp_client, aws_api_mcp_client, bda_mcp_client:
+        gateway_tools = mcp_client.list_tools_sync()
+        aws_api_tools = aws_api_mcp_client.list_tools_sync()
+        bda_mcp_tools = bda_mcp_client.list_tools_sync()
 
-swarm = Swarm(
-    nodes=agents,
-    max_handoffs=20,
-    max_iterations=20,
-    execution_timeout=900.0,  # 15 minutes
-    node_timeout=300.0,       # 5 minutes per agent
-    repetitive_handoff_detection_window=2,
-    repetitive_handoff_min_unique_agents=2
-)
+        data_extraction_agent = Agent( 
+            name="data_extraction_agent",
+            system_prompt=DATA_EXTRACTION_SYSTEM_PROMPT,
+            model=bedrock_model,
+            tools=[bda_mcp_tools],
+        )
+
+        validation_agent = Agent(
+            name="validation_agent",
+            system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
+            model=bedrock_model,
+        )
+
+        storage_agent = Agent(
+            name="storage_agent",
+            system_prompt=STORAGE_AGENT_SYSTEM_PROMPT,
+            model=bedrock_model,
+            tools=[gateway_tools],
+        )
+
+        builder = GraphBuilder()
+
+        builder.add_node(data_extraction_agent, "data_extraction_agent")
+        builder.add_node(storage_agent, "storage_agent")
+        # builder.add_node(validation_agent, "validation_agent")
+
+        builder.add_edge("data_extraction_agent", "storage_agent")
+        # builder.add_edge("validation_agent", "storage_agent")
+
+        builder.set_entry_point("data_extraction_agent")
+
+        graph = builder.build()
+        result = await graph.invoke_async(prompt)
+        return result
 
 os.makedirs('./files', exist_ok=True)
 
@@ -50,26 +81,23 @@ async def process_mortgage(payload):
     if not os.path.exists(local_path):
         s3_client.download_file(bucket, key, local_path)
 
-    main_log.info(f"Downloaded S3 object to: {local_path}")
-        
     content_blocks = [
         ContentBlock(text="""
-                    Analyze the mortgage document at the given file path and extract key information,
-                    then STORE this data in a structured and unstructured format with appropriate categorization and indexing for future retrieval:
+                    ANALYZE and STORE the mortgage document at the given file path:
                     """),
         ContentBlock(text=local_path),
     ]
 
-    result = await swarm.invoke_async(content_blocks)
+    result = await invoke_graph(content_blocks)
 
     response = {}
     response["Status"] = str(result.status)
-    response["NodeHistory"] = str(result.node_history)
+    response["Execution order"] = str([node.node_id for node in result.execution_order])
 
-    for node in result.node_history:
-        response[node.node_id] = result.results[node.node_id].result
+    for node in result.execution_order:
+        response[node.node_id] = str(result.results[node.node_id].result)
 
-    return response
+    return json.dumps(response)
     
 if __name__ == '__main__':
     app.run()
