@@ -1,10 +1,6 @@
-"""
-Pylance-compliant Mortgage Application Model
-"""
-
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -15,7 +11,6 @@ from pynamodb.attributes import (
     ListAttribute,
     MapAttribute,
     NumberAttribute,
-    TTLAttribute,
     UnicodeAttribute,
     UTCDateTimeAttribute,
     VersionAttribute,
@@ -23,9 +18,6 @@ from pynamodb.attributes import (
 from pynamodb.exceptions import DoesNotExist, PutError, UpdateError
 from pynamodb.indexes import AllProjection, GlobalSecondaryIndex
 from pynamodb.models import Model
-
-if TYPE_CHECKING:
-    from pynamodb.pagination import ResultIterator
 
 
 class CitizenshipType(Enum):
@@ -233,8 +225,6 @@ class OriginatorIndex(GlobalSecondaryIndex):
         index_name = 'loan-originator-index'
         projection = AllProjection()
         billing_mode = 'PAY_PER_REQUEST'
-        # Use on-demand billing instead of PAY_PER_REQUEST constant
-        # Region is inherited from the main model
     
     loan_originator_id: UnicodeAttribute = UnicodeAttribute(hash_key=True)
     application_date: UnicodeAttribute = UnicodeAttribute(range_key=True)
@@ -247,8 +237,6 @@ class PropertyStateIndex(GlobalSecondaryIndex):
         index_name = 'property-state-index'
         projection = AllProjection()
         billing_mode = 'PAY_PER_REQUEST'
-        # Use on-demand billing instead of PAY_PER_REQUEST constant
-        # Region is inherited from the main model
     
     property_state: UnicodeAttribute = UnicodeAttribute(hash_key=True)
     application_date: UnicodeAttribute = UnicodeAttribute(range_key=True)
@@ -288,7 +276,6 @@ class SSNLookupIndex(GlobalSecondaryIndex):
     ssn: UnicodeAttribute = UnicodeAttribute(hash_key=True)
 
 
-# Main Model
 class MortgageApplication(Model):
     """
     Mortgage Application Model
@@ -296,14 +283,12 @@ class MortgageApplication(Model):
     
     class Meta:
         table_name = "mortgage-applications"
-        region = "us-east-1"  # Update to your preferred region
+        region = "us-east-1"
         billing_mode = 'PAY_PER_REQUEST'
         enable_backup = True
     
-    # Primary key - Fixed default syntax
     application_id: UnicodeAttribute = UnicodeAttribute(hash_key=True, default=str(uuid4()))
     
-    # Core attributes
     name: UnicodeAttribute = UnicodeAttribute()
     description: UnicodeAttribute = UnicodeAttribute()
     borrower_name: UnicodeAttribute = UnicodeAttribute()
@@ -315,20 +300,11 @@ class MortgageApplication(Model):
     status: UnicodeAttribute = UnicodeAttribute(default=ApplicationStatus.PENDING.value)
     version: UnicodeAttribute = UnicodeAttribute(default="1.0")
     
-    # Complex nested configuration
     configuration: ConfigurationAttribute = ConfigurationAttribute()
     
-    # Timestamps - Fixed default syntax
     created_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     updated_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     
-    # Version control for optimistic locking
-    record_version: VersionAttribute = VersionAttribute()
-    
-    # TTL for automatic cleanup (optional - remove if not needed)
-    # ttl: TTLAttribute = TTLAttribute(default=lambda: datetime.utcnow() + timedelta(days=2555))  # 7 years
-    
-    # Global Secondary Indexes
     status_index: StatusIndex = StatusIndex()
     originator_index: OriginatorIndex = OriginatorIndex()
     property_state_index: PropertyStateIndex = PropertyStateIndex()
@@ -377,6 +353,10 @@ class MortgageApplication(Model):
         name = f"Mortgage Application - {borrower_name}"
         
         # Convert configuration data to ConfigurationAttribute
+        # Automatically add timestamps
+        now = datetime.now(timezone.utc)
+        configuration_data['created_at'] = now
+        configuration_data['updated_at'] = now
         config = ConfigurationAttribute(**configuration_data)
         
         try:
@@ -396,48 +376,6 @@ class MortgageApplication(Model):
             return application
         except Exception as e:
             raise PutError(f"Failed to create application: {str(e)}") from e
-    
-    def update_status(self, new_status: ApplicationStatus) -> None:
-        """
-        Update application status with timestamp.
-        
-        Args:
-            new_status: New status to set
-            
-        Raises:
-            UpdateError: If update operation fails
-        """
-        try:
-            self.status = new_status.value
-            self.updated_at = datetime.now(timezone.utc)
-            self.save()
-        except Exception as e:
-            raise UpdateError(f"Failed to update status: {str(e)}") from e
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        Convert model to dictionary for API responses.
-        
-        Returns:
-            Dictionary representation of the model
-        """
-        return {
-            "application_id": self.application_id,
-            "name": self.name,
-            "description": self.description,
-            "borrower_name": self.borrower_name,
-            "ssn": self.ssn,  # Mask in production
-            "application_date": self.application_date,
-            "loan_amount": float(self.loan_amount),
-            "loan_originator_id": self.loan_originator_id,
-            "property_state": self.property_state,
-            "status": self.status,
-            "version": self.version,
-            "configuration": self.configuration.as_dict() if self.configuration else None,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
-            "record_version": self.record_version
-        }
     
     @classmethod
     def get_by_status(cls, status: ApplicationStatus, limit: int = 50) -> List[MortgageApplication]:
