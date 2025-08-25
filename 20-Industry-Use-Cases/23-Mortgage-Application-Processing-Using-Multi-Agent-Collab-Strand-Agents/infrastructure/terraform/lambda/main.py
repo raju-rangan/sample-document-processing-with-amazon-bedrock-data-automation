@@ -297,6 +297,80 @@ def get_application_old(app_id: Optional[str]) -> Dict[str, Any]:
 
 
 def list_applications(params: Dict[str, Any]) -> Dict[str, Any]:
+    """List mortgage applications with enhanced query capabilities using the optimized model."""
+    try:
+        limit = min(int(params.get("limit", DEFAULT_SCAN_LIMIT)), MAX_SCAN_LIMIT)
+    except ValueError:
+        return response(400, {"error": "Invalid limit parameter"})
+
+    try:
+        # Check for specific query parameters to use optimized indexes
+        status = params.get("status")
+        borrower_name = params.get("borrower_name")
+        loan_originator_id = params.get("loan_originator_id")
+        property_state = params.get("property_state")
+        min_amount = params.get("min_amount")
+        max_amount = params.get("max_amount")
+        
+        applications = []
+        
+        # Use appropriate index-based query if parameters are provided
+        if status:
+            try:
+                status_enum = ApplicationStatus(status)
+                if min_amount or max_amount:
+                    # Use loan amount index for amount-based queries
+                    applications = MortgageApplication.get_by_amount_range(
+                        status_enum,
+                        min_amount=float(min_amount) if min_amount else None,
+                        max_amount=float(max_amount) if max_amount else None,
+                        limit=limit
+                    )
+                else:
+                    # Use status index
+                    applications = MortgageApplication.get_by_status(status_enum, limit=limit)
+            except ValueError:
+                return response(400, {"error": f"Invalid status: {status}"})
+                
+        elif borrower_name:
+            # Use borrower name index
+            applications = MortgageApplication.get_by_borrower_name(borrower_name, limit=limit)
+            
+        elif loan_originator_id:
+            # Use loan originator index
+            applications = MortgageApplication.get_by_originator(loan_originator_id, limit=limit)
+            
+        elif property_state:
+            # Use property state index
+            applications = MortgageApplication.get_by_state_and_amount_range(
+                property_state,
+                min_amount=float(min_amount) if min_amount else None,
+                max_amount=float(max_amount) if max_amount else None,
+                limit=limit
+            )
+        else:
+            # Fall back to scan operation for general listing
+            return list_applications_old(params)
+
+        # Convert applications to dict format
+        items = [app.to_dict() for app in applications]
+
+        response_data = {
+            "data": items,
+            "count": len(items),
+            "has_more": len(items) >= limit,  # Simple approximation
+            "query_type": "index_query"  # Indicate this used an optimized query
+        }
+
+        return response(200, response_data)
+
+    except Exception as e:
+        logger.exception("Error listing applications")
+        return response(500, {"error": "Database error"})
+
+
+def list_applications_old(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Original list_applications function using scan (kept as backup)."""
     try:
         limit = min(int(params.get("limit", DEFAULT_SCAN_LIMIT)), MAX_SCAN_LIMIT)
     except ValueError:
@@ -324,6 +398,7 @@ def list_applications(params: Dict[str, Any]) -> Dict[str, Any]:
             "data": items,
             "count": len(items),
             "has_more": "LastEvaluatedKey" in result,
+            "query_type": "scan"  # Indicate this used a scan operation
         }
 
         if result.get("LastEvaluatedKey"):
