@@ -1,0 +1,123 @@
+inlinePayload:
+  - name: "create_application"
+    description: "Create a new application"
+    inputSchema:
+      type: "object"
+      properties:
+        httpMethod:
+          type: "string"
+          description: "HTTP method for the request (use POST)"
+        body:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+              description: "Name of the application"
+            description:
+              type: "string"
+              description: "Description of the application"
+            status:
+              type: "string"
+              description: "Initial status of the application (active, inactive, or pending)"
+            version:
+              type: "string"
+              description: "Version of the application"
+            configuration:
+              type: "object"
+              description: "Application-specific configuration data"
+          required: ["name"]
+      required: ["httpMethod", "body"]
+
+  - name: "get_application"
+    description: "Get a specific application by ID"
+    inputSchema:
+      type: "object"
+      properties:
+        httpMethod:
+          type: "string"
+          description: "HTTP method for the request (use GET)"
+        pathParameters:
+          type: "object"
+          properties:
+            application_id:
+              type: "string"
+              description: "The unique identifier of the application"
+          required: ["application_id"]
+      required: ["httpMethod", "pathParameters"]
+
+  - name: "list_applications"
+    description: "List all applications with optional filtering and pagination"
+    inputSchema:
+      type: "object"
+      properties:
+        httpMethod:
+          type: "string"
+          description: "HTTP method for the request (use GET)"
+        queryStringParameters:
+          type: "object"
+          properties:
+            limit:
+              type: "string"
+              description: "Maximum number of applications to return"
+            offset:
+              type: "string"
+              description: "Number of applications to skip for pagination"
+            status:
+              type: "string"
+              description: "Filter applications by status"
+            search:
+              type: "string"
+              description: "Search applications by name or description"
+      required: ["httpMethod"]
+
+  - name: "update_application"
+    description: "Update an existing application"
+    inputSchema:
+      type: "object"
+      properties:
+        httpMethod:
+          type: "string"
+          description: "HTTP method for the request (use PUT)"
+        pathParameters:
+          type: "object"
+          properties:
+            application_id:
+              type: "string"
+              description: "The unique identifier of the application"
+          required: ["application_id"]
+        body:
+          type: "object"
+          properties:
+            name:
+              type: "string"
+              description: "Name of the application"
+            description:
+              type: "string"
+              description: "Description of the application"
+            status:
+              type: "string"
+              description: "Status of the application (active, inactive, or pending)"
+            version:
+              type: "string"
+              description: "Version of the application"
+            configuration:
+              type: "object"
+              description: "Application-specific configuration data"
+      required: ["httpMethod", "pathParameters", "body"]
+
+  - name: "delete_application"
+    description: "Delete an application by ID"
+    inputSchema:
+      type: "object"
+      properties:
+        httpMethod:
+          type: "string"
+          description: "HTTP method for the request (use DELETE)"
+        pathParameters:
+          type: "object"
+          properties:
+            application_id:
+              type: "string"
+              description: "The unique identifier of the application"
+          required: ["application_id"]
+      required: ["httpMethod", "pathParameters"]

@@ -1,5 +1,3 @@
-from strands import Agent, tool
-from strands import Agent
 from strands.tools.mcp import MCPClient
 import boto3
 from strands.models import BedrockModel
@@ -27,7 +25,6 @@ bedrock_model = BedrockModel(
 )
 
 env = os.environ.copy()
-env["UV_CONSTRAINT"] = "requirements.txt"
 
 bda_mcp_client = MCPClient(lambda: stdio_client(
     StdioServerParameters(
@@ -36,12 +33,3 @@ bda_mcp_client = MCPClient(lambda: stdio_client(
         env=env
     )
 ))
-
-# bda_mcp_client.start()
-
-# data_extraction_agent = Agent( 
-#     name="data_extraction_agent",
-#     system_prompt=DATA_EXTRACTION_SYSTEM_PROMPT,
-#     model=bedrock_model,
-#     tools=bda_mcp_client.list_tools_sync(),
-# )

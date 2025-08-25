@@ -23,3 +23,13 @@ output "agentcore_ecr_repository_url" {
     value       = module.agentcore_ecr.repository_url
 }
 
+output "mortgage_api_url" {
+    description = "The URL of the mortgage applications HTTP API"
+    value       = module.apigateway-v2.api_endpoint
+}
+
+output "mortgage_lambda_function_name" {
+    description = "The name of the mortgage applications Lambda function"
+    value       = module.mortgage_applications_lambda.lambda_function_name
+}
+

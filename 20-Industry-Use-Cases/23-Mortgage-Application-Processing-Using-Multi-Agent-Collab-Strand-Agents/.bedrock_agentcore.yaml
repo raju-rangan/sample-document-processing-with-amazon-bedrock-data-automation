@@ -21,7 +21,7 @@ agents:
     bedrock_agentcore:
       agent_id: dev-7IRV2WDSok
       agent_arn: arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok
-      agent_session_id: null
+      agent_session_id: 9b589a58-b353-452c-8e4b-b7a8ffc3abb3
     codebuild:
       project_name: null
       execution_role: null

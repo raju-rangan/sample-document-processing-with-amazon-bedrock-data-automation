@@ -1,5 +1,3 @@
-from strands import Agent
-from strands import Agent
 import boto3
 from strands.models import BedrockModel
 import os
@@ -41,9 +39,3 @@ bedrock_model = BedrockModel(
     model_id="us.anthropic.claude-3-7-sonnet-20250219-v1:0",
     boto_session=session,
 )
-
-# validation_agent = Agent(
-#     name="validation_agent",
-#     system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
-#     model=bedrock_model,
-# )

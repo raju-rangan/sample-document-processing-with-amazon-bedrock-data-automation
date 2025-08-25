@@ -1,14 +1,14 @@
 import json
-from data_extraction_agent import DATA_EXTRACTION_SYSTEM_PROMPT, bda_mcp_client
+from src.mortgage_processor.agents.data_extraction_agent import DATA_EXTRACTION_SYSTEM_PROMPT, bda_mcp_client
 from strands import Agent
-from validation_agent import VALIDATION_AGENT_SYSTEM_PROMPT
+from src.mortgage_processor.agents.validation_agent import VALIDATION_AGENT_SYSTEM_PROMPT
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from strands.multiagent import Swarm
 from strands.types.content import ContentBlock
 import boto3
 from strands.multiagent import GraphBuilder
-from storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT, mcp_client, aws_api_mcp_client
+from src.mortgage_processor.agents.storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT, aws_api_mcp_client
 import os
+from src.mortgage_processor.mcp.mcp_client import get_gateway_mcp_client
 
 import logging
 
@@ -23,8 +23,9 @@ logging.basicConfig(
 app = BedrockAgentCoreApp()
 
 async def invoke_graph(prompt):
-    with mcp_client, aws_api_mcp_client, bda_mcp_client:
-        gateway_tools = mcp_client.list_tools_sync()
+    gateway_mcp_client = get_gateway_mcp_client(region=os.environ.get('AWS_REGION','us-east-1'))
+    with gateway_mcp_client, aws_api_mcp_client, bda_mcp_client:
+        gateway_tools = gateway_mcp_client.list_tools_sync()
         aws_api_tools = aws_api_mcp_client.list_tools_sync()
         bda_mcp_tools = bda_mcp_client.list_tools_sync()
 
@@ -97,7 +98,7 @@ async def process_mortgage(payload):
     for node in result.execution_order:
         response[node.node_id] = str(result.results[node.node_id].result)
 
-    return json.dumps(response)
+    return json.dumps(response, indent=2)
     
 if __name__ == '__main__':
     app.run()

@@ -1,0 +1,25 @@
+[project]
+name = "mortgage-processor"
+version = "0.1.0"
+description = "Mortgage processing application"
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp==2.10.5",
+    "pydantic==2.11.7",
+    "boto3==1.39.14",
+    "httpx==0.28.1",
+    "strands-agents",
+    "strands-agents-tools",
+    "bedrock-agentcore",
+    "aws-opentelemetry-distro==0.10.1",
+    "bedrock-agentcore-starter-toolkit==0.1.1",
+    "uv==0.8.3",
+    "mcp==1.12.2",
+    "requests",
+    "pyyaml",
+    "pynamodb"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

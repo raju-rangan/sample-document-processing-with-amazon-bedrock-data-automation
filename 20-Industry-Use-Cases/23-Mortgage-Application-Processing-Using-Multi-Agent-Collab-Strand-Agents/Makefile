@@ -16,7 +16,10 @@ terraform-destroy:
 	cd terraform && terraform destroy
 
 agent-configure:
-	cd src && agentcore configure --entrypoint main.py -er $(IAM_ROLE) -ecr $(ECR) --requirements-file requirements.txt
+	agentcore configure --entrypoint main.py -er $(IAM_ROLE) -ecr $(ECR) --requirements-file requirements.txt
 
 agent-launch:
-	cd src && agentcore launch --env AWS_BUCKET_NAME=$(BDA_BUCKET)
+	agentcore launch --env AWS_BUCKET_NAME=$(BDA_BUCKET)
+
+agent-invoke:
+	agentcore invoke '{ "bucket": "raw-document-store20250802224425881600000001", "key": "-3195903774208638100.pdf" }'

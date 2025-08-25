@@ -4,8 +4,12 @@ import time
 from boto3.session import Session
 import botocore
 import requests
-import os
 import time
+import os
+from botocore import exceptions
+
+
+REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 def setup_cognito_user_pool():
     boto_session = Session()
@@ -581,7 +585,7 @@ def create_gateway_lambda(lambda_function_code_path) -> dict[str, int]:
 
         print(f"Role '{role_name}' created successfully: {role_arn}")
         time.sleep(100)
-    except botocore.exceptions.ClientError as error:
+    except exceptions.ClientError as error:
         if error.response['Error']['Code'] == "EntityAlreadyExists":
             response = iam_client.get_role(RoleName=role_name)
             role_arn = response['Role']['Arn']
@@ -607,7 +611,7 @@ def create_gateway_lambda(lambda_function_code_path) -> dict[str, int]:
 
             return_resp['lambda_function_arn'] = lambda_response['FunctionArn']
             return_resp['exit_code'] = 0
-        except botocore.exceptions.ClientError as error:
+        except exceptions.ClientError as error:
             if error.response['Error']['Code'] == "ResourceConflictException":
                 response = lambda_client.get_function(FunctionName=lambda_function_name)
                 lambda_arn = response['Configuration']['FunctionArn']
@@ -620,7 +624,7 @@ def create_gateway_lambda(lambda_function_code_path) -> dict[str, int]:
 
     return return_resp
 
-def delete_gateway(gateway_client,gatewayId): 
+def delete_gateway(gateway_client, gatewayId): 
     print("Deleting all targets for gateway", gatewayId)
     list_response = gateway_client.list_gateway_targets(
             gatewayIdentifier = gatewayId,
@@ -643,6 +647,6 @@ def delete_all_gateways(gateway_client):
         )
         for item in list_response['items']:
             gatewayId= item["gatewayId"]
-            delete_gateway(gatewayId)
+            delete_gateway(gateway_client=gateway_client, gatewayId=gatewayId)
     except Exception as e:
         print(e)

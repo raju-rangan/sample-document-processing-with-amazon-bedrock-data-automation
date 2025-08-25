@@ -4,7 +4,7 @@ data "aws_region" "current" {}
 
 module "raw_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.2.0"
+  version = "~> 5.5.0"
 
   bucket_prefix = "raw-document-store"
   acl    = "private"
@@ -16,7 +16,7 @@ module "raw_s3_bucket" {
 
 module "bda_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.2.0"
+  version = "~> 5.5.0"
 
   bucket_prefix = "bedrock-data-automation-store"
   acl    = "private"
@@ -28,7 +28,7 @@ module "bda_s3_bucket" {
 
 module "kb_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.2.0"
+  version = "~> 5.5.0"
 
   bucket_prefix = "bedrock-knowledge-base-store"
   acl    = "private"
@@ -343,12 +343,12 @@ module "agentcore_ecr" {
 
 module "mortgage_applications_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0"
+  version = "~> 8.0.1"
 
   function_name = "mortgage-applications-crud"
   description   = "CRUD operations for mortgage applications"
   handler       = "main.lambda_handler"
-  runtime       = "python3.12"
+  runtime       = "python3.13"
   timeout       = 30
   memory_size   = 256
   publish       = true
@@ -387,4 +387,83 @@ module "mortgage_applications_lambda" {
     Environment = "production"
     Terraform   = "true"
   }
+}
+
+# HTTP API Gateway v2 using terraform-aws-modules for best practices
+module "apigateway-v2" {
+  source  = "terraform-aws-modules/apigateway-v2/aws"
+  version = "5.3.0"
+
+  name          = "mortgage-applications-api"
+  description   = "HTTP API Gateway for mortgage applications CRUD operations"
+  protocol_type = "HTTP"
+
+  # Disable domain features
+  create_domain_name = false
+  create_certificate = false
+
+  # CORS configuration
+  cors_configuration = {
+    allow_credentials = false
+    allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token"]
+    allow_methods     = ["*"]
+    allow_origins     = ["*"]
+    max_age          = 86400
+  }
+
+  # Create routes and integrations
+  routes = {
+    "POST /applications" = {
+      integration = {
+        uri                    = module.mortgage_applications_lambda.lambda_function_arn
+        payload_format_version = "2.0"
+        timeout_milliseconds   = 12000
+      }
+    }
+
+    "GET /applications" = {
+      integration = {
+        uri                    = module.mortgage_applications_lambda.lambda_function_arn
+        payload_format_version = "2.0"
+        timeout_milliseconds   = 12000
+      }
+    }
+
+    "GET /applications/{application_id}" = {
+      integration = {
+        uri                    = module.mortgage_applications_lambda.lambda_function_arn
+        payload_format_version = "2.0"
+        timeout_milliseconds   = 12000
+      }
+    }
+
+    "PUT /applications/{application_id}" = {
+      integration = {
+        uri                    = module.mortgage_applications_lambda.lambda_function_arn
+        payload_format_version = "2.0"
+        timeout_milliseconds   = 12000
+      }
+    }
+
+    "DELETE /applications/{application_id}" = {
+      integration = {
+        uri                    = module.mortgage_applications_lambda.lambda_function_arn
+        payload_format_version = "2.0"
+        timeout_milliseconds   = 12000
+      }
+    }
+  }
+
+  tags = {
+    Terraform = "true"
+  }
+}
+
+# Lambda permission for HTTP API Gateway to invoke the function
+resource "aws_lambda_permission" "api_gateway_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = module.mortgage_applications_lambda.lambda_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${module.apigateway-v2.api_execution_arn}/*/*"
 }

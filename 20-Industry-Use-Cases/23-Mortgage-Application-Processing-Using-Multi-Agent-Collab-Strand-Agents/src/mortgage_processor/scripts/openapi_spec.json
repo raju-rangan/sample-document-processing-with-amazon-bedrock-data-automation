@@ -1,0 +1,577 @@
+{
+  "openapi": "3.1.0",
+  "servers": [
+    {
+      "url": "https://xzmi1zo3r4.execute-api.us-east-1.amazonaws.com"
+    }
+  ],
+  "info": {
+    "title": "Application Management API",
+    "version": "1.0.0",
+    "description": "API for managing applications"
+  },
+  "paths": {
+    "/applications": {
+      "post": {
+        "summary": "Create a new application",
+        "operationId": "create_application",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the application"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the application"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Initial status of the application (active, inactive, or pending)"
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "Version of the application format"
+                  },
+                  "configuration": {
+                  "type": "object",
+                  "description": "Application-specific configuration data",
+                  "properties": {
+                    "assets": {
+                      "type": "object",
+                      "description": "Borrower's asset information",
+                      "properties": {
+                        "checking_account": {
+                          "type": "object",
+                          "properties": {
+                            "account_number": {
+                              "type": "string",
+                              "description": "Bank account number"
+                            },
+                            "bank": {
+                              "type": "string",
+                              "description": "Name of the bank"
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "Account balance value"
+                            }
+                          },
+                          "required": ["account_number", "bank", "value"]
+                        },
+                        "other_assets": {
+                          "type": "number",
+                          "description": "Value of other miscellaneous assets"
+                        },
+                        "retirement_account": {
+                          "type": "object",
+                          "properties": {
+                            "account_number": {
+                              "type": "string",
+                              "description": "Retirement account number"
+                            },
+                            "institution": {
+                              "type": "string",
+                              "description": "Financial institution managing the account"
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "Current account value"
+                            }
+                          },
+                          "required": ["account_number", "institution", "value"]
+                        },
+                        "savings_account": {
+                          "type": "object",
+                          "properties": {
+                            "account_number": {
+                              "type": "string",
+                              "description": "Savings account number"
+                            },
+                            "bank": {
+                              "type": "string",
+                              "description": "Name of the bank"
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "Account balance value"
+                            }
+                          },
+                          "required": ["account_number", "bank", "value"]
+                        },
+                        "stocks": {
+                          "type": "object",
+                          "properties": {
+                            "account_number": {
+                              "type": "string",
+                              "description": "Investment account number"
+                            },
+                            "institution": {
+                              "type": "string",
+                              "description": "Investment institution name"
+                            },
+                            "value": {
+                              "type": "number",
+                              "description": "Current stock portfolio value"
+                            }
+                          },
+                          "required": ["account_number", "institution", "value"]
+                        },
+                        "total_assets_value": {
+                          "type": "number",
+                          "description": "Sum of all asset values"
+                        }
+                      },
+                      "required": ["total_assets_value"]
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "ISO 8601 timestamp when the configuration was created"
+                    },
+                    "declarations": {
+                      "type": "object",
+                      "description": "Borrower declarations and attestations",
+                      "properties": {
+                        "connections_to_seller": {
+                          "type": "boolean",
+                          "description": "Whether borrower has connections to the property seller"
+                        },
+                        "other_liens": {
+                          "type": "boolean",
+                          "description": "Whether there are other liens on the property"
+                        },
+                        "other_mortgage_applications": {
+                          "type": "boolean",
+                          "description": "Whether borrower has other pending mortgage applications"
+                        },
+                        "owned_property_past_36_months": {
+                          "type": "boolean",
+                          "description": "Whether borrower owned property in the past 36 months"
+                        },
+                        "pending_credit_applications": {
+                          "type": "boolean",
+                          "description": "Whether borrower has pending credit applications"
+                        },
+                        "primary_residence": {
+                          "type": "boolean",
+                          "description": "Whether the property will be used as primary residence"
+                        },
+                        "undisclosed_financial_assistance": {
+                          "type": "boolean",
+                          "description": "Whether borrower received undisclosed financial assistance"
+                        }
+                      },
+                      "required": [
+                        "connections_to_seller",
+                        "other_liens", 
+                        "other_mortgage_applications",
+                        "owned_property_past_36_months",
+                        "pending_credit_applications",
+                        "primary_residence",
+                        "undisclosed_financial_assistance"
+                      ]
+                    },
+                    "employment_information": {
+                      "type": "object",
+                      "description": "Borrower's employment details",
+                      "properties": {
+                        "address": {
+                          "type": "string",
+                          "description": "Employer's address"
+                        },
+                        "employer": {
+                          "type": "string",
+                          "description": "Name of the employer"
+                        },
+                        "monthly_income": {
+                          "type": "object",
+                          "properties": {
+                            "base": {
+                              "type": "number",
+                              "description": "Base monthly income"
+                            },
+                            "bonus": {
+                              "type": "number",
+                              "description": "Monthly bonus amount"
+                            },
+                            "gross_total": {
+                              "type": "number",
+                              "description": "Total gross monthly income"
+                            }
+                          },
+                          "required": ["base", "bonus", "gross_total"]
+                        },
+                        "phone": {
+                          "type": "string",
+                          "description": "Employer's phone number"
+                        },
+                        "position": {
+                          "type": "string",
+                          "description": "Job title/position"
+                        },
+                        "start_date": {
+                          "type": "string",
+                          "format": "date",
+                          "description": "Employment start date (MM/DD/YYYY format)",
+                          "pattern": "^\\d{2}/\\d{2}/\\d{4}$"
+                        },
+                        "time_in_field": {
+                          "type": "string",
+                          "description": "Total time working in this field",
+                          "pattern": "^\\d+ years?, \\d+ months?$"
+                        }
+                      },
+                      "required": ["address", "employer", "monthly_income", "phone", "position", "start_date", "time_in_field"]
+                    },
+                    "liabilities": {
+                      "type": "object",
+                      "description": "Borrower's debt and liability information",
+                      "properties": {
+                        "loans": {
+                          "type": "array",
+                          "description": "List of existing loans and debts",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "account_number": {
+                                "type": "string",
+                                "description": "Loan account number"
+                              },
+                              "balance": {
+                                "type": "number",
+                                "description": "Outstanding loan balance"
+                              },
+                              "institution": {
+                                "type": "string",
+                                "description": "Lending institution name"
+                              },
+                              "monthly_payment": {
+                                "type": "number",
+                                "description": "Monthly payment amount"
+                              },
+                              "type": {
+                                "type": "string",
+                                "enum": ["Other Loan", "Installment Loan", "Revolving Credit"],
+                                "description": "Type of loan or credit"
+                              }
+                            },
+                            "required": ["account_number", "balance", "institution", "monthly_payment", "type"]
+                          }
+                        },
+                        "total_monthly_debt": {
+                          "type": "number",
+                          "description": "Sum of all monthly debt payments"
+                        }
+                      },
+                      "required": ["loans", "total_monthly_debt"]
+                    },
+                    "loan_information": {
+                      "type": "object",
+                      "description": "Information about the requested loan",
+                      "properties": {
+                        "occupancy": {
+                          "type": "string",
+                          "enum": ["Primary Residence", "Secondary Residence", "Investment Property"],
+                          "description": "How the property will be occupied"
+                        },
+                        "property_address": {
+                          "type": "string",
+                          "description": "Full address of the property being financed"
+                        },
+                        "property_value": {
+                          "type": "number",
+                          "description": "Estimated value of the property"
+                        },
+                        "purpose": {
+                          "type": "string",
+                          "enum": ["Purchase", "Refinance", "Construction", "Other"],
+                          "description": "Purpose of the loan"
+                        }
+                      },
+                      "required": ["occupancy", "property_address", "property_value", "purpose"]
+                    },
+                    "loan_originator_information": {
+                      "type": "object",
+                      "description": "Information about the loan originator",
+                      "properties": {
+                        "address": {
+                          "type": "string",
+                          "description": "Loan originator's business address"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email",
+                          "description": "Loan originator's email address"
+                        },
+                        "loan_originator_name": {
+                          "type": "string",
+                          "description": "Full name of the loan originator"
+                        },
+                        "loan_originator_nmlsr_id": {
+                          "type": "string",
+                          "description": "NMLS registration ID for the loan originator"
+                        },
+                        "organization": {
+                          "type": "string",
+                          "description": "Name of the lending organization"
+                        },
+                        "organization_nmlsr_id": {
+                          "type": "string",
+                          "description": "NMLS registration ID for the organization"
+                        },
+                        "organization_state_license_id": {
+                          "type": "string",
+                          "description": "State license ID for the organization"
+                        },
+                        "originator_state_license_id": {
+                          "type": "string",
+                          "description": "State license ID for the loan originator"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "description": "Loan originator's phone number"
+                        }
+                      },
+                      "required": [
+                        "address",
+                        "email", 
+                        "loan_originator_name",
+                        "loan_originator_nmlsr_id",
+                        "organization",
+                        "organization_nmlsr_id",
+                        "organization_state_license_id",
+                        "originator_state_license_id",
+                        "phone"
+                      ]
+                    },
+                    "personal_information": {
+                      "type": "object",
+                      "description": "Borrower's personal information",
+                      "properties": {
+                        "citizenship": {
+                          "type": "string",
+                          "enum": ["U.S. Citizen", "Permanent Resident", "Non-Resident Alien"],
+                          "description": "Citizenship status"
+                        },
+                        "contact": {
+                          "type": "object",
+                          "properties": {
+                            "cell_phone": {
+                              "type": "string",
+                              "description": "Cell phone number"
+                            },
+                            "current_address": {
+                              "type": "string",
+                              "description": "Current residential address"
+                            },
+                            "email": {
+                              "type": "string",
+                              "format": "email",
+                              "description": "Email address"
+                            },
+                            "home_phone": {
+                              "type": "string",
+                              "description": "Home phone number"
+                            },
+                            "housing_payment": {
+                              "type": "number",
+                              "description": "Current monthly housing payment (rent/mortgage)"
+                            },
+                            "housing_situation": {
+                              "type": "string",
+                              "enum": ["Renting", "Own", "Living with Others", "Other"],
+                              "description": "Current housing situation"
+                            },
+                            "time_at_address": {
+                              "type": "string",
+                              "description": "Duration at current address",
+                              "pattern": "^\\d+ years?, \\d+ months?$"
+                            }
+                          },
+                          "required": [
+                            "cell_phone",
+                            "current_address", 
+                            "email",
+                            "home_phone",
+                            "housing_payment",
+                            "housing_situation",
+                            "time_at_address"
+                          ]
+                        },
+                        "credit_type": {
+                          "type": "string",
+                          "enum": ["Individual application", "Joint application"],
+                          "description": "Type of credit application"
+                        },
+                        "date_of_birth": {
+                          "type": "string",
+                          "format": "date",
+                          "description": "Date of birth (MM/DD/YYYY format)",
+                          "pattern": "^\\d{2}/\\d{2}/\\d{4}$"
+                        },
+                        "dependents": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Number of dependents"
+                        },
+                        "marital_status": {
+                          "type": "string",
+                          "enum": ["Single", "Married", "Separated", "Divorced", "Widowed"],
+                          "description": "Marital status"
+                        }
+                      },
+                      "required": ["citizenship", "contact", "credit_type", "date_of_birth", "dependents", "marital_status"]
+                    }
+                  },
+                  "required": [
+                    "assets",
+                    "created_at",
+                    "declarations", 
+                    "employment_information",
+                    "liabilities",
+                    "loan_information",
+                    "loan_originator_information",
+                    "personal_information"
+                  ]
+                }
+                },
+                "required": ["name", "status", "version", "configuration"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Application created successfully"
+          }
+        }
+      },
+      "get": {
+        "summary": "List all applications with optional filtering and pagination",
+        "operationId": "list_applications",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Maximum number of applications to return"
+          },
+          {
+            "name": "last_evaluated_key",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Last evaluated key for pagination"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of applications returned successfully"
+          }
+        }
+      }
+    },
+    "/applications/{application_id}": {
+      "get": {
+        "summary": "Get a specific application by ID",
+        "operationId": "get_application",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The unique identifier of the application"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Application details retrieved successfully"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an existing application",
+        "operationId": "update_application",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The unique identifier of the application"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the application"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Description of the application"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Status of the application (active, inactive, or pending)"
+                  },
+                  "version": {
+                    "type": "string",
+                    "description": "Version of the application"
+                  },
+                  "configuration": {
+                    "type": "object",
+                    "description": "Application-specific configuration data"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Application updated successfully"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an application by ID",
+        "operationId": "delete_application",
+        "parameters": [
+          {
+            "name": "application_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The unique identifier of the application"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Application deleted successfully"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      }
+    }
+  }
+}
