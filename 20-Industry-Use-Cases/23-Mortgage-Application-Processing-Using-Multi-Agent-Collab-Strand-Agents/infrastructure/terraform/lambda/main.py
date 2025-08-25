@@ -125,79 +125,42 @@ def to_decimal_if_number(value: Any) -> Any:
 def create_application(data: Dict[str, Any]) -> Dict[str, Any]:
     """Create a new mortgage application using the optimized model."""
     try:
-        # Validate required fields for basic application creation
-        missing_fields = validate_required(data, ["borrower_name"])
+        # Validate required fields for application creation
+        required_fields = ["borrower_name", "ssn", "loan_amount", "loan_originator_id", "property_state", "configuration"]
+        missing_fields = validate_required(data, required_fields)
         if missing_fields:
             return response(400, {"error": f"Missing required fields: {missing_fields}"})
 
         # Extract required fields
         borrower_name = data.get("borrower_name")
-        ssn = data.get("ssn", "000-00-0000")  # Default for testing
-        loan_amount = data.get("loan_amount", 0)
-        loan_originator_id = data.get("loan_originator_id", "DEFAULT_LO")
-        property_state = data.get("property_state", "CA")
+        ssn = data.get("ssn")
+        loan_amount = data.get("loan_amount")
+        loan_originator_id = data.get("loan_originator_id")
+        property_state = data.get("property_state")
+        configuration_data = data.get("configuration")
+
+        # Validate configuration structure
+        if not isinstance(configuration_data, dict):
+            return response(400, {"error": "Configuration must be a valid object"})
+
+        # Validate that configuration has required sections
+        required_config_sections = [
+            'personal_information',
+            'employment_information', 
+            'assets',
+            'liabilities',
+            'loan_information',
+            'loan_originator_information',
+            'declarations'
+        ]
         
-        # Create minimal configuration if not provided
-        if "configuration" not in data:
-            configuration_data = {
-                'created_at': datetime.now(timezone.utc),
-                'updated_at': datetime.now(timezone.utc),
-                'personal_information': {
-                    'date_of_birth': '01/01/1980',
-                    'marital_status': 'Single',
-                    'dependents': 0,
-                    'citizenship': 'U.S. Citizen',
-                    'credit_type': 'Individual application',
-                    'contact': {
-                        'current_address': data.get('address', '123 Default St'),
-                        'time_at_address': '1 year',
-                        'housing_situation': 'Renting',
-                        'housing_payment': 1000,
-                        'home_phone': '555-0000',
-                        'cell_phone': '555-0001',
-                        'email': data.get('email', 'default@example.com')
-                    }
-                },
-                'employment_information': {
-                    'employer': 'Default Corp',
-                    'position': 'Employee',
-                    'address': '456 Work Ave',
-                    'phone': '555-0002',
-                    'start_date': '01/01/2020',
-                    'time_in_field': '5 years',
-                    'monthly_income': {'base': 5000, 'bonus': 0, 'gross_total': 5000}
-                },
-                'assets': {'total_assets_value': 10000},
-                'liabilities': {'loans': [], 'total_monthly_debt': 0},
-                'loan_information': {
-                    'purpose': 'Purchase',
-                    'occupancy': 'Primary Residence',
-                    'property_address': data.get('property_address', '789 Property St'),
-                    'property_value': data.get('property_value', loan_amount * 1.2 if loan_amount else 300000)
-                },
-                'loan_originator_information': {
-                    'loan_originator_name': 'Default Originator',
-                    'loan_originator_nmlsr_id': 'DEFAULT123',
-                    'originator_state_license_id': 'ST123',
-                    'organization': 'Default Mortgage Co',
-                    'organization_nmlsr_id': 'ORG123',
-                    'organization_state_license_id': 'ST456',
-                    'address': '321 Lender St',
-                    'phone': '555-0003',
-                    'email': 'originator@default.com'
-                },
-                'declarations': {
-                    'connections_to_seller': False,
-                    'other_liens': False,
-                    'other_mortgage_applications': False,
-                    'owned_property_past_36_months': False,
-                    'pending_credit_applications': False,
-                    'primary_residence': True,
-                    'undisclosed_financial_assistance': False
-                }
-            }
-        else:
-            configuration_data = data["configuration"]
+        missing_config_sections = [section for section in required_config_sections 
+                                 if section not in configuration_data]
+        if missing_config_sections:
+            return response(400, {
+                "error": f"Configuration missing required sections: {missing_config_sections}",
+                "required_sections": required_config_sections
+            })
 
         # Create application using optimized model
         application = MortgageApplication.create_application(
@@ -544,7 +507,7 @@ def delete_application(app_id: Optional[str]) -> Dict[str, Any]:
         deleted_data = application.to_dict()
 
         # Delete using the optimized model's safe delete method
-        success = application.delete_safely()
+        success = application.delete()
         
         if not success:
             return response(500, {"error": "Failed to delete application"})
