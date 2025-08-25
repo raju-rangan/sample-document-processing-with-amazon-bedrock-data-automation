@@ -522,6 +522,37 @@ def update_application_old(app_id: Optional[str], data: Dict[str, Any]) -> Dict[
 
 
 def delete_application(app_id: Optional[str]) -> Dict[str, Any]:
+    """Delete a mortgage application using the optimized model."""
+    if not app_id:
+        return response(400, {"error": "application_id required"})
+
+    try:
+        # Get the existing application first
+        application = MortgageApplication.get_application_safely(app_id)
+        if not application:
+            return response(404, {"error": "Application not found"})
+
+        # Convert to dict before deletion for response
+        deleted_data = application.to_dict()
+
+        # Delete using the optimized model's safe delete method
+        success = application.delete_safely()
+        
+        if not success:
+            return response(500, {"error": "Failed to delete application"})
+
+        return response(200, {
+            "message": "Application deleted", 
+            "data": deleted_data
+        })
+
+    except Exception as e:
+        logger.exception("Error deleting application", extra={"application_id": app_id})
+        return response(500, {"error": f"Failed to delete application: {str(e)}"})
+
+
+def delete_application_old(app_id: Optional[str]) -> Dict[str, Any]:
+    """Original delete_application function (kept as backup)."""
     if not app_id:
         return response(400, {"error": "application_id required"})
 
