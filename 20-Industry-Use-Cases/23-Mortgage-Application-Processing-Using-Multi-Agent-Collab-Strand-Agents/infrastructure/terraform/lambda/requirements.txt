@@ -1,1 +1,2 @@
 aws-lambda-powertools
+pynamodb>=6.0.0
