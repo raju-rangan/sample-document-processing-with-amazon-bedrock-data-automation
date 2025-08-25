@@ -1,8 +1,5 @@
 """
-Pylance-compliant Mortgage Application Model with PynamoDB Best Practices
-
-This module provides a comprehensive mortgage application data model using PynamoDB
-with full Pylance/mypy compliance and 2024+ best practices.
+Pylance-compliant Mortgage Application Model
 """
 
 from __future__ import annotations
@@ -294,10 +291,7 @@ class SSNLookupIndex(GlobalSecondaryIndex):
 # Main Model
 class MortgageApplication(Model):
     """
-    Mortgage Application Model with 2025 best practices.
-    
-    This model provides comprehensive mortgage application data storage
-    with full Pylance compliance and optimizations.
+    Mortgage Application Model
     """
     
     class Meta:
