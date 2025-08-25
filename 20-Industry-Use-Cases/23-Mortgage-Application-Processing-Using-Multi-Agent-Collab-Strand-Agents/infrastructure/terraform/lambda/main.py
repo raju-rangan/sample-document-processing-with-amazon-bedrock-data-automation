@@ -12,6 +12,9 @@ from boto3.dynamodb.types import TypeDeserializer
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
+# Import our optimized mortgage application model
+from mortgage_application import MortgageApplication, ApplicationStatus
+
 logger = Logger(service="mortgage-crud-service")
 
 MAX_SCAN_LIMIT = 500
