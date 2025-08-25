@@ -242,7 +242,7 @@ def run_agent_demo(gateway_url: str, token: str):
         agent = Agent(model=model, tools=tools)
         logging.info(f"Tools loaded: {agent.tool_names}")
         print(agent("Hi, can you list all tools available to you?"))
-        print(agent("Hi, list all the information I need to create a new application"))
+        print(agent("Hi, list all the existing applications"))
 
 
 def main():
