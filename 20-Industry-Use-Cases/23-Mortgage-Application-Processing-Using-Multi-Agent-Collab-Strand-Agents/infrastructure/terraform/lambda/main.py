@@ -42,7 +42,7 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
             if isinstance(result.get("body"), str):
                 body_data = json.loads(result["body"])
                 body_data["model_version"] = "optimized_v1"
-                result["body"] = json.dumps(body_data, default=decimal_default)
+                result["body"] = json.dumps(body_data, default=str)
             return result
 
         return response(405, {"error": "Method not allowed"})
@@ -59,9 +59,14 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
 def parse_body(raw_body: Optional[Union[str, dict]]) -> dict:
     if not raw_body:
         return {}
+    if isinstance(raw_body, dict):
+        return raw_body
     if isinstance(raw_body, str):
-        return json.loads(raw_body)
-    return raw_body
+        try:
+            return json.loads(raw_body)
+        except json.JSONDecodeError:
+            return {}
+    return {}
 
 
 def required_param(params: dict, key: str) -> str:
@@ -79,15 +84,8 @@ def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
             "Content-Type": "application/json",
             "Access-Control-Allow-Origin": "*",
         },
-        "body": json.dumps(body, default=decimal_default),
+        "body": json.dumps(body, default=str),
     }
-
-
-def decimal_default(obj: Any) -> Union[float, str]:
-    if isinstance(obj, Decimal):
-        return float(obj)
-    raise TypeError(f"Object of type {type(obj).__name__} is not JSON serializable")
-
 
 def create_application(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
@@ -157,7 +155,7 @@ def create_application(data: Dict[str, Any]) -> Dict[str, Any]:
             description=description
         )
 
-        result = application.to_dict()
+        result = application.to_simple_dict()
         
         return response(201, {"message": "Application created", "data": result})
 
@@ -176,7 +174,7 @@ def get_application(app_id: Optional[str]) -> Dict[str, Any]:
         if not application:
             return response(404, {"error": "Application not found"})
 
-        result = application.to_dict()
+        result = application.to_simple_dict()
         
         return response(200, {"data": result})
 
@@ -232,7 +230,7 @@ def list_applications(params: Dict[str, Any]) -> Dict[str, Any]:
         else:
             applications = list(MortgageApplication.scan(limit=limit))
 
-        items = [app.to_dict() for app in applications]
+        items = [app.to_simple_dict() for app in applications]
 
         response_data = {
             "data": items,
@@ -259,38 +257,27 @@ def update_application(app_id: Optional[str], data: Dict[str, Any]) -> Dict[str,
         if not application:
             return response(404, {"error": "Application not found"})
 
-        if "status" in data:
-            status_value = data["status"]
-            if not isinstance(status_value, str):
-                return response(400, {"error": "status must be a string"})
-            
-            try:
-                new_status = ApplicationStatus(status_value)
-                application.update_status(new_status)
-                data = {k: v for k, v in data.items() if k != "status"}
-            except ValueError:
-                return response(400, {"error": f"Invalid status: {status_value}"})
-
         updated_fields = []
         for key, value in data.items():
-            if key not in ["application_id", "created_at", "record_version"]:
+            if key not in ["application_id", "created_at", "updated_at", "record_version"]:
                 if hasattr(application, key):
                     if key == "loan_amount":
                         if not isinstance(value, (int, float)) or value <= 0:
                             return response(400, {"error": "loan_amount must be a positive number"})
                         value = Decimal(str(value))
-                    elif key in ["borrower_name", "ssn", "loan_originator_id", "property_state", "description"]:
-                        if value is not None and (not isinstance(value, str) or not str(value).strip()):
-                            return response(400, {"error": f"{key} must be a non-empty string if provided"})
+                    elif key == "status":
+                        if not isinstance(value, str):
+                            return response(400, {"error": "status must be a string"})
+                        value = ApplicationStatus(value)
                     
                     setattr(application, key, value)
                     updated_fields.append(key)
 
-        if updated_fields or "status" in data:
+        if updated_fields:
             application.updated_at = datetime.now(timezone.utc)
             application.save()
 
-        result = application.to_dict()
+        result = application.to_simple_dict()
         
         return response(200, {
             "message": "Application updated", 
@@ -312,7 +299,7 @@ def delete_application(app_id: Optional[str]) -> Dict[str, Any]:
         if not application:
             return response(404, {"error": "Application not found"})
 
-        deleted_data = application.to_dict()
+        deleted_data = application.to_simple_dict()
 
         success = application.delete()
         
