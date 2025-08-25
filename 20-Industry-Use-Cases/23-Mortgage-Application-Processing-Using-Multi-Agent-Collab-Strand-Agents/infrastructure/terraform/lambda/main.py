@@ -415,6 +415,61 @@ def list_applications_old(params: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def update_application(app_id: Optional[str], data: Dict[str, Any]) -> Dict[str, Any]:
+    """Update a mortgage application using the optimized model."""
+    if not app_id:
+        return response(400, {"error": "application_id required"})
+    if not data:
+        return response(400, {"error": "Update data required"})
+
+    try:
+        # Get the existing application
+        application = MortgageApplication.get_application_safely(app_id)
+        if not application:
+            return response(404, {"error": "Application not found"})
+
+        # Handle status updates using the optimized method
+        if "status" in data:
+            try:
+                new_status = ApplicationStatus(data["status"])
+                application.update_status(new_status)
+                # Remove status from data since it's already handled
+                data = {k: v for k, v in data.items() if k != "status"}
+            except ValueError:
+                return response(400, {"error": f"Invalid status: {data['status']}"})
+
+        # Update other fields directly on the model
+        updated_fields = []
+        for key, value in data.items():
+            if key not in ["application_id", "created_at", "record_version"]:  # Skip read-only fields
+                if hasattr(application, key):
+                    # Convert loan_amount to Decimal if needed
+                    if key == "loan_amount" and isinstance(value, (int, float)):
+                        value = Decimal(str(value))
+                    
+                    setattr(application, key, value)
+                    updated_fields.append(key)
+
+        # Save the updated application if there were changes
+        if updated_fields or "status" in data:
+            application.updated_at = datetime.now(timezone.utc)
+            application.save()
+
+        # Convert to dict for response
+        result = application.to_dict()
+        
+        return response(200, {
+            "message": "Application updated", 
+            "data": result,
+            "updated_fields": updated_fields
+        })
+
+    except Exception as e:
+        logger.exception("Error updating application", extra={"application_id": app_id})
+        return response(500, {"error": f"Failed to update application: {str(e)}"})
+
+
+def update_application_old(app_id: Optional[str], data: Dict[str, Any]) -> Dict[str, Any]:
+    """Original update_application function (kept as backup)."""
     if not app_id:
         return response(400, {"error": "application_id required"})
     if not data:
