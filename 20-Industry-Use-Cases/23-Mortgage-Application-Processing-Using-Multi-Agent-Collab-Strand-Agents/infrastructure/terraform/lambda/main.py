@@ -20,6 +20,7 @@ logger = Logger(service="mortgage-crud-service")
 MAX_SCAN_LIMIT = 500
 DEFAULT_SCAN_LIMIT = 100
 
+# Keep TABLE_NAME and DynamoDB client for backward compatibility with old functions
 TABLE_NAME = os.environ["TABLE_NAME"]
 dynamodb = boto3.client("dynamodb")
 
@@ -30,6 +31,7 @@ deserializer = TypeDeserializer()
 def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
     """
     Main Lambda handler for mortgage applications CRUD operations.
+    Now using optimized MortgageApplication model with enhanced query capabilities.
     """
     try:
         # Handle both API Gateway v1 and v2 event formats
@@ -56,7 +58,13 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
         }
 
         if method in routes:
-            return routes[method]()
+            result = routes[method]()
+            # Add model version info to response
+            if isinstance(result.get("body"), str):
+                body_data = json.loads(result["body"])
+                body_data["model_version"] = "optimized_v1"
+                result["body"] = json.dumps(body_data, default=decimal_default)
+            return result
 
         return response(405, {"error": "Method not allowed"})
 
