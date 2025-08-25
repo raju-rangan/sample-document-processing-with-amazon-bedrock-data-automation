@@ -252,6 +252,29 @@ def create_application_old(data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def get_application(app_id: Optional[str]) -> Dict[str, Any]:
+    """Get a mortgage application by ID using the optimized model."""
+    if not app_id:
+        return response(400, {"error": "application_id required"})
+
+    try:
+        # Use the optimized model's safe get method
+        application = MortgageApplication.get_application_safely(app_id)
+        
+        if not application:
+            return response(404, {"error": "Application not found"})
+
+        # Convert to dict for response
+        result = application.to_dict()
+        
+        return response(200, {"data": result})
+
+    except Exception as e:
+        logger.exception("Error retrieving application", extra={"application_id": app_id})
+        return response(500, {"error": "Database error"})
+
+
+def get_application_old(app_id: Optional[str]) -> Dict[str, Any]:
+    """Original get_application function (kept as backup)."""
     if not app_id:
         return response(400, {"error": "application_id required"})
 
