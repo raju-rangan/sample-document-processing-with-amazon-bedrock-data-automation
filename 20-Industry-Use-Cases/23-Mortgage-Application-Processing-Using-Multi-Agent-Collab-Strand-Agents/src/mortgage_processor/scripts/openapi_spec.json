@@ -121,18 +121,8 @@
                             }
                           },
                           "required": ["account_number", "institution", "value"]
-                        },
-                        "total_assets_value": {
-                          "type": "number",
-                          "description": "Sum of all asset values"
                         }
-                      },
-                      "required": ["total_assets_value"]
-                    },
-                    "created_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "description": "ISO 8601 timestamp when the configuration was created"
+                      }
                     },
                     "declarations": {
                       "type": "object",
@@ -398,7 +388,6 @@
                             "cell_phone",
                             "current_address", 
                             "email",
-                            "home_phone",
                             "housing_payment",
                             "housing_situation",
                             "time_at_address"

@@ -28,8 +28,13 @@ output "mortgage_api_url" {
     value       = module.apigateway-v2.api_endpoint
 }
 
-output "mortgage_lambda_function_name" {
+output "mortgage_crud_function_name" {
     description = "The name of the mortgage applications Lambda function"
     value       = module.mortgage_applications_lambda.lambda_function_name
+}
+
+output "mortgage_preprocessor_function_name" {
+    description = "The name of the mortgage applications preprocessor Lambda function"
+    value       = module.mortgage_applications_preprocessor_lambda.lambda_function_name
 }
 

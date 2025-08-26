@@ -14,6 +14,25 @@ module "raw_s3_bucket" {
   object_ownership         = "ObjectWriter"
 }
 
+resource "aws_lambda_permission" "allow_s3_invoke" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = module.mortgage_applications_preprocessor_lambda.lambda_function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = module.raw_s3_bucket.s3_bucket_arn
+}
+
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = module.raw_s3_bucket.s3_bucket_id
+
+  lambda_function {
+    lambda_function_arn = module.mortgage_applications_preprocessor_lambda.lambda_function_arn
+    events              = ["s3:ObjectCreated:*"]
+  }
+
+  depends_on = [aws_lambda_permission.allow_s3_invoke]
+}
+
 module "bda_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
   version = "~> 5.5.0"
@@ -353,7 +372,7 @@ module "mortgage_applications_lambda" {
   memory_size   = 256
   publish       = true
 
-  source_path = "${path.module}/lambda"
+  source_path = "${path.module}/crud_lambda"
 
   environment_variables = {
     TABLE_NAME = "mortgage-applications"
@@ -384,7 +403,149 @@ module "mortgage_applications_lambda" {
   
   tags = {
     Name        = "mortgage-applications-crud"
-    Environment = "production"
+    Terraform   = "true"
+  }
+}
+
+resource "aws_cloudwatch_event_rule" "bedrock_job_completion" {
+  description = "Triggers on Bedrock Data Automation job completion"
+  event_pattern = jsonencode({
+    "source"      = ["aws.bedrock-data-automation"],
+    "detail-type" = ["Bedrock Data Automation Job State Change"],
+    "detail" = {
+      "status" = ["SUCCEEDED", "FAILED", "CANCELLED"]
+    }
+  })
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.bedrock_job_completion.name
+  target_id = "sendToLambda"
+  arn       = module.mortgage_applications_agentcore_lambda.lambda_function_arn
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = module.mortgage_applications_agentcore_lambda.lambda_function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.bedrock_job_completion.arn
+}
+
+module "mortgage_applications_agentcore_lambda" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 8.0.1"
+
+  function_name = "mortgage-agentcore"
+  description   = "Mortgage application agentcore"
+  handler       = "main.lambda_handler"
+  runtime       = "python3.13"
+  timeout       = 30
+  memory_size   = 256
+  publish       = true
+
+  source_path = "${path.module}/agentcore_lambda"
+
+  environment_variables = {
+    AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok"
+  }
+
+  attach_policy_statements = true
+  policy_statements = {
+    bedrock_agent_core = {
+      effect = "Allow"
+      actions = [
+        "bedrock-agentcore:*"
+      ]
+      resources = ["*"]
+    }
+
+    bedrock_data_automation = {
+      effect = "Allow"
+      actions = [
+        "bedrock:*"
+      ]
+      resources = ["*"]
+    }
+
+    s3_read_only = {
+      effect = "Allow"
+      actions = [
+        "s3:Get*",
+        "s3:List*",
+      ]
+      resources = [
+        "arn:aws:s3:::*",
+        "arn:aws:s3:::*/*"
+      ]
+    }
+  }
+
+  cloudwatch_logs_retention_in_days = 14
+
+  create_lambda_function_url = false
+  
+  tags = {
+    Name        = "mortgage-applications-agentcore"
+    Terraform   = "true"
+  }
+}
+
+module "mortgage_applications_preprocessor_lambda" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 8.0.1"
+
+  function_name = "mortgage-preprocess"
+  description   = "Mortgage application preprocessor"
+  handler       = "main.lambda_handler"
+  runtime       = "python3.13"
+  timeout       = 30
+  memory_size   = 256
+  publish       = true
+
+  source_path = "${path.module}/preprocess_lambda"
+
+  environment_variables = {
+    BDA_PROJECT_NAME = "IRLA"
+  }
+
+  attach_policy_statements = true
+  policy_statements = {
+    bedrock_agent_core = {
+      effect = "Allow"
+      actions = [
+        "bedrock-agentcore:*"
+      ]
+      resources = ["*"]
+    }
+
+    bedrock_data_automation = {
+      effect = "Allow"
+      actions = [
+        "bedrock:*"
+      ]
+      resources = ["*"]
+    }
+
+    s3_read_only = {
+      effect = "Allow"
+      actions = [
+        "s3:Get*",
+        "s3:List*",
+      ]
+      resources = [
+        "arn:aws:s3:::*",
+        "arn:aws:s3:::*/*"
+      ]
+    }
+  }
+
+  cloudwatch_logs_retention_in_days = 14
+
+  create_lambda_function_url = false
+  
+  tags = {
+    Name        = "mortgage-applications-preprocessor"
     Terraform   = "true"
   }
 }
