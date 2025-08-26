@@ -448,6 +448,7 @@ module "mortgage_applications_agentcore_lambda" {
 
   environment_variables = {
     AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok"
+    AGENT_ENDPOINT_NAME = "DEFAULT"
   }
 
   attach_policy_statements = true
@@ -506,7 +507,9 @@ module "mortgage_applications_preprocessor_lambda" {
   source_path = "${path.module}/preprocess_lambda"
 
   environment_variables = {
-    BDA_PROJECT_NAME = "IRLA"
+    BDA_PROJECT_ARN = "arn:aws:bedrock:us-east-1:145023138732:data-automation-project/63749ca89ee7"
+    INPUT_S3_BUCKET = "raw-document-store20250802224425881600000001"
+    OUTPUT_S3_BUCKET = "bedrock-data-automation-store20250802224427805500000002"
   }
 
   attach_policy_statements = true

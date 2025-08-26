@@ -6,7 +6,8 @@ from typing import Dict, Any, Optional
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-
+INPUT_S3_BUCKET = os.environ.get("INPUT_S3_BUCKET")
+OUTPUT_S3_BUCKET = os.environ.get("OUTPUT_S3_BUCKET")
 
 logger = Logger(service="mortgage-preprocess-service")
 
