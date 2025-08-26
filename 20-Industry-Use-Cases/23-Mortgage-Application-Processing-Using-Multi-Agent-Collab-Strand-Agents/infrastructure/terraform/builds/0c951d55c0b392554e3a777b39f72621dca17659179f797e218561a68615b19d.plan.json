@@ -1,1 +1,0 @@
-{"filename": "builds/0c951d55c0b392554e3a777b39f72621dca17659179f797e218561a68615b19d.zip", "runtime": "python3.13", "artifacts_dir": "builds", "build_plan": [[["pip", "python3.13", "./agentcore_lambda/requirements.txt", null, null], ["zip", "./agentcore_lambda", null]]]}
