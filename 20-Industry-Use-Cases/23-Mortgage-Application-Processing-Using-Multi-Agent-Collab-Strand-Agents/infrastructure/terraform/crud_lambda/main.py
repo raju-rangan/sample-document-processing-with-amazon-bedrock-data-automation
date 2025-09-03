@@ -11,6 +11,8 @@ from mortgage_application import MortgageApplication, ApplicationStatus
 
 logger = Logger(service="mortgage-crud-service")
 
+SPEC_S3_URI = os.environ["SPEC_S3_URI"]
+
 MAX_SCAN_LIMIT = 500
 DEFAULT_SCAN_LIMIT = 100
 
@@ -63,7 +65,9 @@ def parse_body(raw_body: Optional[Union[str, dict]]) -> dict:
         return raw_body
     if isinstance(raw_body, str):
         try:
-            return json.loads(raw_body)
+            res = json.loads(raw_body)
+            logger.info(f"Parsed JSON body: {res}")
+            return res
         except json.JSONDecodeError:
             return {}
     return {}
@@ -74,8 +78,10 @@ def required_param(params: dict, key: str) -> str:
         raise KeyError(key)
     return params[key]
 
+
 def validate_required(data: Dict[str, Any], fields: list) -> list:
     return [f for f in fields if not data.get(f)]
+
 
 def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     return {
@@ -87,71 +93,11 @@ def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
         "body": json.dumps(body, default=str),
     }
 
+
 def create_application(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
-        required_fields = ["borrower_name", "ssn", "loan_amount", "loan_originator_id", "property_state", "configuration"]
-        missing_fields = validate_required(data, required_fields)
-        if missing_fields:
-            return response(400, {"error": f"Missing required fields: {missing_fields}"})
-
-        borrower_name = data.get("borrower_name")
-        if not isinstance(borrower_name, str) or not borrower_name.strip():
-            return response(400, {"error": "borrower_name must be a non-empty string"})
-
-        ssn = data.get("ssn")
-        if not isinstance(ssn, str) or not ssn.strip():
-            return response(400, {"error": "ssn must be a non-empty string"})
-
-        loan_amount = data.get("loan_amount")
-        if not isinstance(loan_amount, (int, float)) or loan_amount <= 0:
-            return response(400, {"error": "loan_amount must be a positive number"})
-
-        loan_originator_id = data.get("loan_originator_id")
-        if not isinstance(loan_originator_id, str) or not loan_originator_id.strip():
-            return response(400, {"error": "loan_originator_id must be a non-empty string"})
-
-        property_state = data.get("property_state")
-        if not isinstance(property_state, str) or not property_state.strip():
-            return response(400, {"error": "property_state must be a non-empty string"})
-
-        configuration_data = data.get("configuration")
-        if not isinstance(configuration_data, dict):
-            return response(400, {"error": "Configuration must be a valid object"})
-
-        required_config_sections = [
-            'personal_information',
-            'employment_information', 
-            'assets',
-            'liabilities',
-            'loan_information',
-            'loan_originator_information',
-            'declarations'
-        ]
-        
-        missing_config_sections = [section for section in required_config_sections 
-                                 if section not in configuration_data]
-        if missing_config_sections:
-            return response(400, {
-                "error": f"Configuration missing required sections: {missing_config_sections}",
-                "required_sections": required_config_sections
-            })
-
-        application_date = data.get("application_date")
-        if application_date is not None and not isinstance(application_date, str):
-            return response(400, {"error": "application_date must be a string if provided"})
-
-        description = data.get("description")
-        if description is not None and not isinstance(description, str):
-            return response(400, {"error": "description must be a string if provided"})
-
         application = MortgageApplication.create_application(
-            borrower_name=borrower_name,
-            ssn=ssn,
-            loan_amount=loan_amount,
-            loan_originator_id=loan_originator_id,
-            property_state=property_state,
-            configuration_data=configuration_data,
-            description=description
+            **data
         )
 
         result = application.to_simple_dict()
@@ -188,46 +134,8 @@ def list_applications(params: Dict[str, Any]) -> Dict[str, Any]:
     except ValueError:
         return response(400, {"error": "Invalid limit parameter"})
 
-    try:
-        status = params.get("status")
-        borrower_name = params.get("borrower_name")
-        loan_originator_id = params.get("loan_originator_id")
-        property_state = params.get("property_state")
-        min_amount = params.get("min_amount")
-        max_amount = params.get("max_amount")
-        
-        applications = []
-        
-        if status:
-            try:
-                status_enum = ApplicationStatus(status)
-                if min_amount or max_amount:
-                    applications = MortgageApplication.get_by_amount_range(
-                        status_enum,
-                        min_amount=float(min_amount) if min_amount else None,
-                        max_amount=float(max_amount) if max_amount else None,
-                        limit=limit
-                    )
-                else:
-                    applications = MortgageApplication.get_by_status(status_enum, limit=limit)
-            except ValueError:
-                return response(400, {"error": f"Invalid status: {status}"})
-                
-        elif borrower_name:
-            applications = MortgageApplication.get_by_borrower_name(borrower_name, limit=limit)
-            
-        elif loan_originator_id:
-            applications = MortgageApplication.get_by_originator(loan_originator_id, limit=limit)
-            
-        elif property_state:
-            applications = MortgageApplication.get_by_state_and_amount_range(
-                property_state,
-                min_amount=float(min_amount) if min_amount else None,
-                max_amount=float(max_amount) if max_amount else None,
-                limit=limit
-            )
-        else:
-            applications = list(MortgageApplication.scan(limit=limit))
+    try:        
+        applications = list(MortgageApplication.scan(limit=limit))
 
         items = [app.to_simple_dict() for app in applications]
 

@@ -37,5 +37,7 @@ USER bedrock_agentcore
 # Expose ports
 EXPOSE 8080 8000
 
+ENV UVICORN_ACCESS_LOG=off
+
 # Run using uv run (automatically activates the project environment)
 CMD ["uv", "run", "opentelemetry-instrument", "python", "-m", "src.mortgage_processor.agents.main_agent"]

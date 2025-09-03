@@ -1,2 +1,3 @@
 aws-lambda-powertools
 pynamodb>=6.0.0
+smart_open

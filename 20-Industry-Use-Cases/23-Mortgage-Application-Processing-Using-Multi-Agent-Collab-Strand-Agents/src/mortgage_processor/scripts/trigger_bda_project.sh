@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Default values (can be overridden by CLI args)
-DEFAULT_PROJECT_ARN="arn:aws:bedrock:us-east-1:145023138732:data-automation-project/63749ca89ee7"
+DEFAULT_PROJECT_ARN="arn:aws:bedrock:us-east-1:145023138732:data-automation-project/1feaf1933fd3"
 DEFAULT_S3_INPUT_URI="s3://raw-document-store20250802224425881600000001/-3195903774208638100.pdf"
 DEFAULT_S3_OUTPUT_URI="s3://bedrock-data-automation-store20250802224427805500000002/"
 DEFAULT_PROFILE_ARN="arn:aws:bedrock:us-east-1:145023138732:data-automation-profile/us.data-automation-v1"
@@ -33,3 +33,32 @@ RESPONSE=$(aws bedrock-data-automation-runtime invoke-data-automation-async \
 
 echo "Response:"
 echo "$RESPONSE"
+
+INVOCATION_ARN=$(echo "$RESPONSE" | jq -r '.invocationArn')
+if [[ -z "$INVOCATION_ARN" || "$INVOCATION_ARN" == "null" ]]; then
+  echo "❌ Failed to extract invocationArn from response."
+  exit 1
+fi
+
+echo "Polling invocation status..."
+while true; do
+  INVOCATION_DETAIL=$(aws bedrock-data-automation-runtime get-data-automation-status \
+    --invocation-arn "$INVOCATION_ARN" \
+    --region "$REGION")
+
+  STATUS=$(echo "$INVOCATION_DETAIL" | jq -r '.status')
+  echo "Current status: $STATUS"
+
+  if [[ "$STATUS" == "Success" || "$STATUS" == "FAILED" ]]; then
+    echo "Invocation finished with status: $STATUS"
+    echo "Full invocation detail:"
+    echo "$INVOCATION_DETAIL"
+
+    if [[ "$STATUS" == "FAILED" ]]; then
+      exit 2
+    fi
+    break
+  fi
+
+  sleep 1
+done

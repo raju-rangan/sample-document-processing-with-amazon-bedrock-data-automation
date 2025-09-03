@@ -24,23 +24,23 @@ app = BedrockAgentCoreApp()
 
 async def invoke_graph(prompt):
     gateway_mcp_client = get_gateway_mcp_client(region=os.environ.get('AWS_REGION','us-east-1'))
-    with gateway_mcp_client, aws_api_mcp_client, bda_mcp_client:
+    with gateway_mcp_client:
         gateway_tools = gateway_mcp_client.list_tools_sync()
-        aws_api_tools = aws_api_mcp_client.list_tools_sync()
-        bda_mcp_tools = bda_mcp_client.list_tools_sync()
+        # aws_api_tools = aws_api_mcp_client.list_tools_sync()
+        # bda_mcp_tools = bda_mcp_client.list_tools_sync()
 
-        data_extraction_agent = Agent( 
-            name="data_extraction_agent",
-            system_prompt=DATA_EXTRACTION_SYSTEM_PROMPT,
-            model=bedrock_model,
-            tools=[bda_mcp_tools],
-        )
+        # data_extraction_agent = Agent( 
+        #     name="data_extraction_agent",
+        #     system_prompt=DATA_EXTRACTION_SYSTEM_PROMPT,
+        #     model=bedrock_model,
+        #     tools=[bda_mcp_tools],
+        # )
 
-        validation_agent = Agent(
-            name="validation_agent",
-            system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
-            model=bedrock_model,
-        )
+        # validation_agent = Agent(
+        #     name="validation_agent",
+        #     system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
+        #     model=bedrock_model,
+        # )
 
         storage_agent = Agent(
             name="storage_agent",
@@ -51,14 +51,14 @@ async def invoke_graph(prompt):
 
         builder = GraphBuilder()
 
-        builder.add_node(data_extraction_agent, "data_extraction_agent")
+        # builder.add_node(data_extraction_agent, "data_extraction_agent")
         builder.add_node(storage_agent, "storage_agent")
         # builder.add_node(validation_agent, "validation_agent")
 
-        builder.add_edge("data_extraction_agent", "storage_agent")
+        # builder.add_edge("data_extraction_agent", "storage_agent")
         # builder.add_edge("validation_agent", "storage_agent")
 
-        builder.set_entry_point("data_extraction_agent")
+        builder.set_entry_point("storage_agent")
 
         graph = builder.build()
         result = await graph.invoke_async(prompt)
@@ -71,22 +71,19 @@ s3_client = session.client('s3')
 
 @app.entrypoint
 async def process_mortgage(payload):
-    bucket = payload.get(
-        "bucket", "No prompt"
-    )
-    key = payload.get(
-        "key", "No prompt"
+    prompt = payload.get(
+        "prompt", "No prompt"
     )
 
-    local_path = f'/app/files/{hash(key)}.pdf'
-    if not os.path.exists(local_path):
-        s3_client.download_file(bucket, key, local_path)
+    # local_path = f'/app/files/{hash(key)}.pdf'
+    # if not os.path.exists(local_path):
+    #     s3_client.download_file(bucket, key, local_path)
 
     content_blocks = [
         ContentBlock(text="""
-                    ANALYZE and STORE the mortgage document at the given file path:
+                    STORE the mortgage document jsons:
                     """),
-        ContentBlock(text=local_path),
+        ContentBlock(text=json.dumps(prompt)),
     ]
 
     result = await invoke_graph(content_blocks)

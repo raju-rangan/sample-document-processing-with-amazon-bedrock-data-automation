@@ -80,7 +80,6 @@ class ApplicationStatus(Enum):
     WITHDRAWN = "withdrawn"
 
 
-# Map Attributes for nested objects
 class BankAccountAttribute(MapAttribute):
     """Bank account information."""
     account_number: UnicodeAttribute = UnicodeAttribute()
@@ -102,7 +101,6 @@ class AssetsAttribute(MapAttribute):
     retirement_account: InvestmentAccountAttribute = InvestmentAccountAttribute(null=True)
     stocks: InvestmentAccountAttribute = InvestmentAccountAttribute(null=True)
     other_assets: NumberAttribute = NumberAttribute(null=True)
-    total_assets_value: NumberAttribute = NumberAttribute()
 
 
 class DeclarationsAttribute(MapAttribute):
@@ -120,7 +118,6 @@ class MonthlyIncomeAttribute(MapAttribute):
     """Monthly income breakdown."""
     base: NumberAttribute = NumberAttribute()
     bonus: NumberAttribute = NumberAttribute()
-    gross_total: NumberAttribute = NumberAttribute()
 
 
 class EmploymentInformationAttribute(MapAttribute):
@@ -146,7 +143,6 @@ class LoanAttribute(MapAttribute):
 class LiabilitiesAttribute(MapAttribute):
     """Liability information."""
     loans: ListAttribute[LoanAttribute] = ListAttribute(of=LoanAttribute, default=list)
-    total_monthly_debt: NumberAttribute = NumberAttribute()
 
 
 class LoanInformationAttribute(MapAttribute):
@@ -182,6 +178,8 @@ class ContactAttribute(MapAttribute):
 
 class PersonalInformationAttribute(MapAttribute):
     """Personal information."""
+    first_name: UnicodeAttribute = UnicodeAttribute()
+    last_name: UnicodeAttribute = UnicodeAttribute()
     date_of_birth: UnicodeAttribute = UnicodeAttribute()  # MM/DD/YYYY format
     marital_status: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
     dependents: NumberAttribute = NumberAttribute()
@@ -200,78 +198,6 @@ class ConfigurationAttribute(MapAttribute):
     loan_originator_information: LoanOriginatorInformationAttribute = LoanOriginatorInformationAttribute()
     declarations: DeclarationsAttribute = DeclarationsAttribute()
 
-
-# Global Secondary Indexes
-class StatusIndex(GlobalSecondaryIndex):
-    """Index for querying by application status."""
-    
-    class Meta:
-        index_name = 'status-date-index'
-        projection = AllProjection()
-        billing_mode = 'PAY_PER_REQUEST'
-    
-    status: UnicodeAttribute = UnicodeAttribute(hash_key=True)
-    created_at: UnicodeAttribute = UnicodeAttribute(range_key=True)
-
-
-class OriginatorIndex(GlobalSecondaryIndex):
-    """Index for querying by loan originator."""
-    
-    class Meta:
-        index_name = 'loan-originator-index'
-        projection = AllProjection()
-        billing_mode = 'PAY_PER_REQUEST'
-    
-    loan_originator_id: UnicodeAttribute = UnicodeAttribute(hash_key=True)
-    created_at: UnicodeAttribute = UnicodeAttribute(range_key=True)
-
-
-class PropertyStateIndex(GlobalSecondaryIndex):
-    """Index for querying by property state."""
-    
-    class Meta:
-        index_name = 'property-state-index'
-        projection = AllProjection()
-        billing_mode = 'PAY_PER_REQUEST'
-    
-    property_state: UnicodeAttribute = UnicodeAttribute(hash_key=True)
-    created_at: UnicodeAttribute = UnicodeAttribute(range_key=True)
-
-
-class LoanAmountIndex(GlobalSecondaryIndex):
-    """Index for querying by status and loan amount."""
-    
-    class Meta:
-        index_name = 'loan-amount-index'
-        projection = AllProjection()
-        billing_mode = 'PAY_PER_REQUEST'
-    
-    status: UnicodeAttribute = UnicodeAttribute(hash_key=True)
-    loan_amount: NumberAttribute = NumberAttribute(range_key=True)
-
-
-class BorrowerNameIndex(GlobalSecondaryIndex):
-    """Index for querying by borrower name."""
-    
-    class Meta:
-        index_name = 'borrower-name-index'
-        projection = AllProjection()
-        billing_mode = 'PAY_PER_REQUEST'
-    
-    borrower_name: UnicodeAttribute = UnicodeAttribute(hash_key=True)
-
-
-class SSNLookupIndex(GlobalSecondaryIndex):
-    """Index for querying by SSN (use with caution for security)."""
-    
-    class Meta:
-        index_name = 'ssn-lookup-index'
-        projection = AllProjection()
-        billing_mode = 'PAY_PER_REQUEST'
-    
-    ssn: UnicodeAttribute = UnicodeAttribute(hash_key=True)
-
-
 class MortgageApplication(Model):
     """
     Mortgage Application Model
@@ -284,14 +210,10 @@ class MortgageApplication(Model):
         enable_backup = True
     
     application_id: UnicodeAttribute = UnicodeAttribute(hash_key=True, default=str(uuid4()))
-    
-    name: UnicodeAttribute = UnicodeAttribute()
     description: UnicodeAttribute = UnicodeAttribute()
     borrower_name: UnicodeAttribute = UnicodeAttribute()
     ssn: UnicodeAttribute = UnicodeAttribute()  # Should be encrypted in production
     loan_amount: NumberAttribute = NumberAttribute()
-    loan_originator_id: UnicodeAttribute = UnicodeAttribute()
-    property_state: UnicodeAttribute = UnicodeAttribute()
     status: UnicodeAttribute = UnicodeAttribute(default=ApplicationStatus.PENDING.value)
     version: UnicodeAttribute = UnicodeAttribute(default="1.0")
     
@@ -300,23 +222,14 @@ class MortgageApplication(Model):
     created_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     updated_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     
-    status_index: StatusIndex = StatusIndex()
-    originator_index: OriginatorIndex = OriginatorIndex()
-    property_state_index: PropertyStateIndex = PropertyStateIndex()
-    loan_amount_index: LoanAmountIndex = LoanAmountIndex()
-    borrower_name_index: BorrowerNameIndex = BorrowerNameIndex()
-    ssn_lookup_index: SSNLookupIndex = SSNLookupIndex()
-    
     @classmethod
     def create_application(
         cls,
         borrower_name: str,
         ssn: str,
         loan_amount: Union[int, float, Decimal],
-        loan_originator_id: str,
-        property_state: str,
-        configuration_data: Dict[str, Any],
-        description: Optional[str] = None
+        configuration: Dict[str, Any],
+        description: Optional[str] = None,
     ) -> MortgageApplication:
         """
         Factory method to create a new mortgage application.
@@ -325,8 +238,6 @@ class MortgageApplication(Model):
             borrower_name: Name of the borrower
             ssn: Social Security Number
             loan_amount: Requested loan amount
-            loan_originator_id: ID of the loan originator
-            property_state: State where property is located
             configuration_data: Detailed application configuration
             description: Optional description
             
@@ -340,217 +251,24 @@ class MortgageApplication(Model):
         if description is None:
             description = f"Mortgage application for {borrower_name}"
         
-        name = f"Mortgage Application - {borrower_name}"
-        
-        # Convert configuration data to ConfigurationAttribute
-        # Automatically add timestamps
         now = datetime.now(timezone.utc)
-        configuration_data['created_at'] = now
-        configuration_data['updated_at'] = now
-        config = ConfigurationAttribute(**configuration_data)
+        configuration['created_at'] = str(now)
+        configuration['updated_at'] = str(now)
+        config = ConfigurationAttribute(**configuration)
         
         try:
             application = cls(
                 borrower_name=borrower_name,
                 ssn=ssn,
                 loan_amount=loan_amount,
-                loan_originator_id=loan_originator_id,
-                property_state=property_state,
-                name=name,
                 description=description,
-                configuration=config
+                configuration=config,
             )
             
             application.save()
             return application
         except Exception as e:
             raise PutError(f"Failed to create application: {str(e)}") from e
-    
-    @classmethod
-    def get_by_status(cls, status: ApplicationStatus, limit: int = 50) -> List[MortgageApplication]:
-        """
-        Query applications by status.
-        
-        Args:
-            status: Status to filter by
-            limit: Maximum number of results
-            
-        Returns:
-            List of matching applications
-        """
-        try:
-            return list(cls.status_index.query(status.value, limit=limit))
-        except Exception:
-            return []
-    
-    @classmethod
-    def get_by_originator(cls, originator_id: str, limit: int = 50) -> List[MortgageApplication]:
-        """
-        Query applications by loan originator.
-        
-        Args:
-            originator_id: Loan originator ID to filter by
-            limit: Maximum number of results
-            
-        Returns:
-            List of matching applications
-        """
-        try:
-            return list(cls.originator_index.query(originator_id, limit=limit))
-        except Exception:
-            return []
-    
-    @classmethod
-    def get_by_state_and_amount_range(
-        cls, 
-        state: str, 
-        min_amount: Optional[Union[int, float]] = None,
-        max_amount: Optional[Union[int, float]] = None,
-        limit: int = 50
-    ) -> List[MortgageApplication]:
-        """
-        Query applications by property state and loan amount range.
-        
-        Note: This method queries by state first, then filters by amount.
-        For amount-focused queries, consider using get_by_amount_range instead.
-        
-        Args:
-            state: Property state to filter by
-            min_amount: Minimum loan amount
-            max_amount: Maximum loan amount
-            limit: Maximum number of results
-            
-        Returns:
-            List of matching applications
-        """
-        try:
-            # Query by property state first
-            query_results = cls.property_state_index.query(state, limit=limit)
-            results = list(query_results)
-            
-            # Apply amount filters manually
-            filtered_results = []
-            for item in results:
-                if min_amount is not None and item.loan_amount < min_amount:
-                    continue
-                if max_amount is not None and item.loan_amount > max_amount:
-                    continue
-                filtered_results.append(item)
-                
-            return filtered_results
-        except Exception:
-            return []
-    
-    @classmethod
-    def get_by_amount_range(
-        cls,
-        status: ApplicationStatus,
-        min_amount: Optional[Union[int, float]] = None,
-        max_amount: Optional[Union[int, float]] = None,
-        limit: int = 50
-    ) -> List[MortgageApplication]:
-        """
-        Query applications by status and loan amount range using the loan-amount-index.
-        
-        Args:
-            status: Application status to filter by
-            min_amount: Minimum loan amount
-            max_amount: Maximum loan amount
-            limit: Maximum number of results
-            
-        Returns:
-            List of matching applications
-        """
-        try:
-            # Use the loan-amount-index for efficient amount-based queries
-            if min_amount is not None and max_amount is not None:
-                # Query with range condition
-                query_results = cls.loan_amount_index.query(
-                    status.value,
-                    cls.loan_amount.between(min_amount, max_amount),
-                    limit=limit
-                )
-            elif min_amount is not None:
-                # Query with minimum amount
-                query_results = cls.loan_amount_index.query(
-                    status.value,
-                    cls.loan_amount >= min_amount,
-                    limit=limit
-                )
-            elif max_amount is not None:
-                # Query with maximum amount
-                query_results = cls.loan_amount_index.query(
-                    status.value,
-                    cls.loan_amount <= max_amount,
-                    limit=limit
-                )
-            else:
-                # Query all for this status
-                query_results = cls.loan_amount_index.query(status.value, limit=limit)
-            
-            return list(query_results)
-        except Exception:
-            return []
-    
-    @classmethod
-    def get_by_borrower_name(cls, borrower_name: str, limit: int = 50) -> List[MortgageApplication]:
-        """
-        Query applications by borrower name.
-        
-        Args:
-            borrower_name: Borrower name to search for
-            limit: Maximum number of results
-            
-        Returns:
-            List of matching applications
-        """
-        try:
-            return list(cls.borrower_name_index.query(borrower_name, limit=limit))
-        except Exception:
-            return []
-    
-    @classmethod
-    def get_by_ssn(cls, ssn: str) -> Optional[MortgageApplication]:
-        """
-        Query application by SSN (should return at most one result).
-        
-        SECURITY WARNING: Use this method with caution. Ensure proper
-        authorization and audit logging when accessing SSN data.
-        
-        Args:
-            ssn: Social Security Number to search for
-            
-        Returns:
-            Application if found, None otherwise
-        """
-        try:
-            results = list(cls.ssn_lookup_index.query(ssn, limit=1))
-            return results[0] if results else None
-        except Exception:
-            return None
-    
-    @classmethod
-    def search_borrower_partial(cls, partial_name: str, limit: int = 50) -> List[MortgageApplication]:
-        """
-        Search for borrowers with names containing the partial string.
-        
-        Note: This performs a scan operation and may be expensive for large tables.
-        Consider using get_by_borrower_name for exact matches.
-        
-        Args:
-            partial_name: Partial name to search for
-            limit: Maximum number of results
-            
-        Returns:
-            List of matching applications
-        """
-        try:
-            results = []
-            for item in cls.scan(cls.borrower_name.contains(partial_name), limit=limit):
-                results.append(item)
-            return results
-        except Exception:
-            return []
     
     @classmethod
     def get_application_safely(cls, application_id: str) -> Optional[MortgageApplication]:
@@ -637,39 +355,12 @@ if __name__ == "__main__":
             borrower_name="Test Borrower",
             ssn="123-45-6789",
             loan_amount=250000,
-            loan_originator_id="TEST_LO_001",
-            property_state="CA",
-            configuration_data=config_data
+            configuration=config_data
         )
         
         print(f"✅ Created application: {app.application_id}")
         print(f"Status: {app.status}")
         print(f"Loan amount: ${app.loan_amount:,.2f}")
-        
-        # Test query by status
-        apps = MortgageApplication.get_by_status(ApplicationStatus.UNDER_REVIEW, limit=1)
-        print(f"✅ Found {len(apps)} applications under review")
-        
-        # Test new loan amount query method
-        amount_apps = MortgageApplication.get_by_amount_range(
-            ApplicationStatus.UNDER_REVIEW, 
-            min_amount=200000, 
-            max_amount=300000, 
-            limit=5
-        )
-        print(f"✅ Found {len(amount_apps)} applications under review with loan amount $200K-$300K")
-        
-        # Test borrower name query
-        borrower_apps = MortgageApplication.get_by_borrower_name("Test Borrower", limit=5)
-        print(f"✅ Found {len(borrower_apps)} applications for borrower 'Test Borrower'")
-        
-        # Test SSN lookup (use with caution in production)
-        ssn_app = MortgageApplication.get_by_ssn("123-45-6789")
-        if ssn_app:
-            print(f"✅ Found application by SSN: {ssn_app.application_id}")
-        else:
-            print("⚠️ No application found by SSN (may be due to GSI propagation delay)")
-        
         print("✅ All tests passed!")
         
     except Exception as e:
