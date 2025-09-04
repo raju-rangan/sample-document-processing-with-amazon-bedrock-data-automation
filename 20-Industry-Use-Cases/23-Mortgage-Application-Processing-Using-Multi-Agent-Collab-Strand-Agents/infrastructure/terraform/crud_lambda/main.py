@@ -26,7 +26,8 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
             
         path_params = event.get("pathParameters") or {}
         query_params = event.get("queryStringParameters") or {}
-        body = parse_body(event.get("body"))
+        body = json.loads(event.get("body", {}))
+        logger.info(f"Parsed JSON body: {body}")
 
         routes = {
             "POST": lambda: create_application(body),
@@ -43,7 +44,6 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
             result = routes[method]()
             if isinstance(result.get("body"), str):
                 body_data = json.loads(result["body"])
-                body_data["model_version"] = "optimized_v1"
                 result["body"] = json.dumps(body_data, default=str)
             return result
 
@@ -56,21 +56,6 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
     except Exception as e:
         logger.exception("Unhandled exception")
         return response(500, {"error": "Internal server error"})
-
-
-def parse_body(raw_body: Optional[Union[str, dict]]) -> dict:
-    if not raw_body:
-        return {}
-    if isinstance(raw_body, dict):
-        return raw_body
-    if isinstance(raw_body, str):
-        try:
-            res = json.loads(raw_body)
-            logger.info(f"Parsed JSON body: {res}")
-            return res
-        except json.JSONDecodeError:
-            return {}
-    return {}
 
 
 def required_param(params: dict, key: str) -> str:

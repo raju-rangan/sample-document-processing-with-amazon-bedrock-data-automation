@@ -78,10 +78,6 @@ module "applications_dynamodb_table" {
       type = "S"
     },
     {
-      name = "application_date"
-      type = "S"
-    },
-    {
       name = "loan_originator_id"
       type = "S"
     },
@@ -106,21 +102,13 @@ module "applications_dynamodb_table" {
       projection_type = "ALL"
     },
     {
-      name            = "status-date-index"
-      hash_key        = "status"
-      range_key       = "application_date"
-      projection_type = "ALL"
-    },
-    {
       name            = "loan-originator-index"
       hash_key        = "loan_originator_id"
-      range_key       = "application_date"
       projection_type = "ALL"
     },
     {
       name            = "property-state-index"
       hash_key        = "property_state"
-      range_key       = "application_date"
       projection_type = "KEYS_ONLY"
     },
     {
@@ -590,74 +578,73 @@ module "mortgage_applications_preprocessor_lambda" {
 }
 
 # HTTP API Gateway v2 using terraform-aws-modules for best practices
-module "apigateway-v2" {
-  source  = "terraform-aws-modules/apigateway-v2/aws"
-  version = "5.3.0"
+  module "apigateway-v2" {
+    source  = "terraform-aws-modules/apigateway-v2/aws"
+    version = "5.3.0"
 
-  name          = "mortgage-applications-api"
-  description   = "HTTP API Gateway for mortgage applications CRUD operations"
-  protocol_type = "HTTP"
+    name          = "mortgage-applications-api"
+    description   = "HTTP API Gateway for mortgage applications CRUD operations"
+    protocol_type = "HTTP"
 
-  # Disable domain features
-  create_domain_name = false
-  create_certificate = false
+    # Disable domain features
+    create_domain_name = false
+    create_certificate = false
 
-  # CORS configuration
-  cors_configuration = {
-    allow_credentials = false
-    allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token"]
-    allow_methods     = ["*"]
-    allow_origins     = ["*"]
-    max_age          = 86400
+    # CORS configuration
+    cors_configuration = {
+      allow_credentials = false
+      allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
+      allow_methods     = ["*"]
+      allow_origins     = ["*"]
+      max_age          = 86400
+    }
+    
+    routes = {
+      "POST /applications" = {
+        integration = {
+          uri                    = module.mortgage_applications_lambda.lambda_function_arn
+          payload_format_version = "2.0"
+          timeout_milliseconds   = 12000
+        }
+      }
+
+      "GET /applications" = {
+        integration = {
+          uri                    = module.mortgage_applications_lambda.lambda_function_arn
+          payload_format_version = "2.0"
+          timeout_milliseconds   = 12000
+        }
+      }
+
+      "GET /applications/{application_id}" = {
+        integration = {
+          uri                    = module.mortgage_applications_lambda.lambda_function_arn
+          payload_format_version = "2.0"
+          timeout_milliseconds   = 12000
+        }
+      }
+
+      "PUT /applications/{application_id}" = {
+        integration = {
+          uri                    = module.mortgage_applications_lambda.lambda_function_arn
+          payload_format_version = "2.0"
+          timeout_milliseconds   = 12000
+        }
+      }
+
+      "DELETE /applications/{application_id}" = {
+        integration = {
+          uri                    = module.mortgage_applications_lambda.lambda_function_arn
+          payload_format_version = "2.0"
+          timeout_milliseconds   = 12000
+        }
+      }
+    }
+
+    tags = {
+      Terraform = "true"
+    }
   }
-
-  # Create routes and integrations
-  routes = {
-    "POST /applications" = {
-      integration = {
-        uri                    = module.mortgage_applications_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 12000
-      }
-    }
-
-    "GET /applications" = {
-      integration = {
-        uri                    = module.mortgage_applications_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 12000
-      }
-    }
-
-    "GET /applications/{application_id}" = {
-      integration = {
-        uri                    = module.mortgage_applications_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 12000
-      }
-    }
-
-    "PUT /applications/{application_id}" = {
-      integration = {
-        uri                    = module.mortgage_applications_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 12000
-      }
-    }
-
-    "DELETE /applications/{application_id}" = {
-      integration = {
-        uri                    = module.mortgage_applications_lambda.lambda_function_arn
-        payload_format_version = "2.0"
-        timeout_milliseconds   = 12000
-      }
-    }
-  }
-
-  tags = {
-    Terraform = "true"
-  }
-}
 
 # Lambda permission for HTTP API Gateway to invoke the function
 resource "aws_lambda_permission" "api_gateway_lambda" {

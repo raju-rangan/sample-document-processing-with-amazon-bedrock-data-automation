@@ -15,7 +15,7 @@ import yaml
 import sys
 import time
 
-REGION = os.environ.get("AWS_DEFAULT_REGION", "us-east-1")
+REGION = "us-east-1"
 GATEWAY_NAME = "TestGWforLambda"
 LAMBDA_FUNCTION_NAME = "mortgage-applications-crud"
 TARGET_NAME = "MortgageCRUD"
@@ -75,15 +75,28 @@ def upload_api_spec_to_s3(bucket_name: str, api_file_path: str) -> str:
     session = boto3.session.Session()
     s3_client = session.client('s3')
     
+    # Check if bucket exists, create if it doesn't
     try:
-        s3bucket = s3_client.create_bucket(
-            Bucket=bucket_name
-        )
-        logging.info(f"Successfully created bucket")
-        logging.debug(s3bucket)
-    except Exception as e:
-        logging.exception(e)
-        raise e
+        s3_client.head_bucket(Bucket=bucket_name)
+        logging.info(f"Bucket {bucket_name} already exists")
+    except ClientError as e:
+        if e.response['Error']['Code'] == '404':
+            # Bucket doesn't exist, create it
+            try:
+                if REGION == 'us-east-1':
+                    s3_client.create_bucket(Bucket=bucket_name)
+                else:
+                    s3_client.create_bucket(
+                        Bucket=bucket_name,
+                        CreateBucketConfiguration={'LocationConstraint': REGION}
+                    )
+                logging.info(f"Successfully created bucket {bucket_name}")
+            except Exception as create_error:
+                logging.error(f"Failed to create bucket: {create_error}")
+                raise create_error
+        else:
+            logging.error(f"Error checking bucket: {e}")
+            raise e
 
     file_name = os.path.basename(api_file_path)
     object_key = f'specs/{file_name}'
@@ -96,7 +109,7 @@ def upload_api_spec_to_s3(bucket_name: str, api_file_path: str) -> str:
     return s3_uri
 
 def create_openapi_cred_provider(cred_provider_name: str, api_key: str) -> str:
-    acps = boto3.client(service_name="bedrock-agentcore-control")
+    acps = boto3.client(service_name="bedrock-agentcore-control", region_name=REGION)
     
     try:
         response=acps.create_api_key_credential_provider(
@@ -165,46 +178,6 @@ def create_openapi_target(client, gateway_id: str, openapi_s3_uri: str, cred_pro
                 return resp["targetId"]
         raise
 
-def create_lambda_target(client, gateway_id: str, lambda_arn: str, tool_schema: Dict[str, Any]) -> str:
-    lambda_target_config = {
-        "mcp": {
-            "lambda": {
-                "lambdaArn": lambda_arn,
-                "toolSchema": tool_schema
-            }
-        }
-    }
-    credential_config = [
-        {"credentialProviderType": "GATEWAY_IAM_ROLE"}
-        ]
-
-    try:
-        resp = client.create_gateway_target(
-            gatewayIdentifier=gateway_id,
-            name=TARGET_NAME,
-            description="Mortgage Lambda Target using SDK",
-            targetConfiguration=lambda_target_config,
-            credentialProviderConfigurations=credential_config
-        )
-        return resp["targetId"]
-    except ClientError as e:
-        if e.response["Error"]["Code"] == "ConflictException":
-            logging.info("Target exists, replacing...")
-            items = client.list_gateway_targets(gatewayIdentifier=gateway_id)["items"]
-            existing = next((t for t in items if t["name"] == TARGET_NAME), None)
-            if existing:
-                client.delete_gateway_target(gatewayIdentifier=gateway_id, targetId=existing["targetId"])
-                resp = client.create_gateway_target(
-                    gatewayIdentifier=gateway_id,
-                    name=TARGET_NAME,
-                    description="Mortgage Lambda Target using SDK",
-                    targetConfiguration=lambda_target_config,
-                    credentialProviderConfigurations=credential_config
-                )
-                return resp["targetId"]
-        raise
-
-
 def get_lambda_arn(region: str, function_name: str) -> str:
     client = boto3.client("lambda", region_name=region)
     fn = client.get_function(FunctionName=function_name)
@@ -229,30 +202,37 @@ def get_bearer_token(user_pool_id: str, client_id: str, client_secret: str, scop
 
 
 def run_agent_demo(gateway_url: str, token: str):
-    if not all([MCPClient, streamablehttp_client, Agent, BedrockModel]):
-        logging.info("Agent demo skipped (optional dependencies missing).")
-        return
+    os.environ['AWS_REGION'] = REGION
+    os.environ['AWS_DEFAULT_REGION'] = REGION
+
+    logging.getLogger("strands").setLevel(logging.DEBUG)
 
     def create_streamable_http_transport():
         return streamablehttp_client(gateway_url, headers={"Authorization": f"Bearer {token}"})
 
-    model = BedrockModel(model_id="us.amazon.nova-pro-v1:0", temperature=0.0)
+    model = BedrockModel(model_id="us.amazon.nova-pro-v1:0", temperature=0.7)
 
     with MCPClient(create_streamable_http_transport) as client:
         tools = client.list_tools_sync()
         for t in tools:
             t: MCPAgentTool
-            print(f't: {t.__str__}')
+            print(f't: {t.mcp_tool}')
         agent = Agent(model=model, tools=tools)
         logging.info(f"Tools loaded: {agent.tool_names}")
-        print(agent("Hi, can you list and provide details on all tools available to you?"))
-        print(agent("Hi, create the most simple application you can think of"))
+        
+        # Explicit prompt with exact JSON structure
+        prompt = """Create the most full and complex mortgage application, make up all the details you don't have"""
+        
+        result = agent(prompt)
+        print(f"Agent result: {result}")
+        return
 
 
 def main():
     script_path = os.path.abspath(__file__)
     print(script_path)
     script_dir = os.path.dirname(script_path)
+    
     s3_uri = upload_api_spec_to_s3("amitzaf-mortgage-demo-bucket", os.path.join(script_dir, "openapi_spec.json"))
 
     # 1) Gateway IAM role
@@ -272,7 +252,7 @@ def main():
     }
     gateway_id, gateway_url = create_gateway(gateway_client, role_arn, auth_config)
 
-    # 4) Lambda target
+    # 4) OpenAPI target
     # lambda_arn = get_lambda_arn(REGION, LAMBDA_FUNCTION_NAME)
     # tool_schema = load_tool_schema()
     cred_provider_arn = create_openapi_cred_provider("MyAPIKey", "aaa")
