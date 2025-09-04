@@ -2,9 +2,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Tuple
 import mortgage_processor.utils.agent_core as utils
+from strands.tools.mcp.mcp_agent_tool import MCPAgentTool
 import boto3
 import os
-from botocore.exceptions import ClientError, ValidationError
+from botocore.exceptions import ClientError
 from strands.models import BedrockModel
 from mcp.client.streamable_http import streamablehttp_client 
 from strands.tools.mcp.mcp_client import MCPClient
@@ -239,10 +240,13 @@ def run_agent_demo(gateway_url: str, token: str):
 
     with MCPClient(create_streamable_http_transport) as client:
         tools = client.list_tools_sync()
+        for t in tools:
+            t: MCPAgentTool
+            print(f't: {t.__str__}')
         agent = Agent(model=model, tools=tools)
         logging.info(f"Tools loaded: {agent.tool_names}")
-        print(agent("Hi, can you list all tools available to you?"))
-        print(agent("Hi, list all the existing applications"))
+        print(agent("Hi, can you list and provide details on all tools available to you?"))
+        print(agent("Hi, create the most simple application you can think of"))
 
 
 def main():
