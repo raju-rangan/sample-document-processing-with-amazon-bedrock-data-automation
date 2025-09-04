@@ -1,7 +1,7 @@
 from typing import Optional
-from strands.tools.mcp import MCPClient
 import os
 from mcp.client.streamable_http import streamablehttp_client 
+from strands.tools.mcp.mcp_client import MCPClient
 from src.mortgage_processor.utils.agent_core import get_token
 import logging
 
@@ -14,7 +14,6 @@ def get_gateway_mcp_client(region: Optional[str],
 
     region = region if region else os.environ.get('AWS_REGION','us-east-1')
     scopeString = f"{resource_server_id}/gateway:read {resource_server_id}/gateway:write"
-    user_pool_id = 'us-east-1_bHASSuci6'
 
     logging.info("Requesting the access token from Amazon Cognito authorizer")
     token_response = get_token(user_pool_id, client_id, client_secret, scopeString, region)
