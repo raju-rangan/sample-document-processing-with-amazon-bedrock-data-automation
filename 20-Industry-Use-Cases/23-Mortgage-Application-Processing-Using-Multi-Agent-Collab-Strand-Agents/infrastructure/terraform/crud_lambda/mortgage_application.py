@@ -205,7 +205,6 @@ class MortgageApplication(Model):
     # Additional fields for internal use
     status: UnicodeAttribute = UnicodeAttribute(default=ApplicationStatus.PENDING.value)
     version: UnicodeAttribute = UnicodeAttribute(default="1.0")
-    description: UnicodeAttribute = UnicodeAttribute()
     created_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     updated_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     
