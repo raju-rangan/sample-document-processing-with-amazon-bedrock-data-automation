@@ -21,6 +21,22 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/MortgageApplication"
+              },
+              "example": {
+                "borrower_name": "John Doe",
+                "ssn": "123-45-6789",
+                "loan_amount": 250000,
+                "assets": { "accounts": [] },
+                "declarations": [],
+                "employment_information": {
+                  "employer": "Acme Corp",
+                  "address": "123 Main St",
+                  "phone": "555-123-4567",
+                  "position": "Engineer",
+                  "monthly_income": { "base": 5000, "bonus": 500 },
+                  "start_date": "2015-06-01",
+                  "time_in_field": { "years": 10, "months": 2 }
+                }
               }
             }
           }
@@ -28,114 +44,6 @@
         "responses": {
           "201": {
             "description": "Application created successfully"
-          }
-        }
-      },
-      "get": {
-        "summary": "List all applications with optional filtering and pagination",
-        "operationId": "list_applications",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": { "type": "string" },
-            "description": "Maximum number of applications to return"
-          },
-          {
-            "name": "last_evaluated_key",
-            "in": "query",
-            "schema": { "type": "string" },
-            "description": "Last evaluated key for pagination"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of applications returned successfully"
-          }
-        }
-      }
-    },
-    "/applications/{application_id}": {
-      "get": {
-        "summary": "Get a specific application by ID",
-        "operationId": "get_application",
-        "parameters": [
-          {
-            "name": "application_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "The unique identifier of the application"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Application details retrieved successfully"
-          },
-          "404": {
-            "description": "Application not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update an existing application",
-        "operationId": "update_application",
-        "parameters": [
-          {
-            "name": "application_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "The unique identifier of the application"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "status": {
-                    "type": "string",
-                    "description": "Status of the application (active, inactive, or pending)"
-                  },
-                  "configuration": {
-                    "type": "object",
-                    "description": "Application-specific configuration data"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Application updated successfully"
-          },
-          "404": {
-            "description": "Application not found"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete an application by ID",
-        "operationId": "delete_application",
-        "parameters": [
-          {
-            "name": "application_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" },
-            "description": "The unique identifier of the application"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Application deleted successfully"
-          },
-          "404": {
-            "description": "Application not found"
           }
         }
       }
@@ -159,7 +67,8 @@
             "description": "Requested loan amount"
           },
           "assets": {
-            "$ref": "#/components/schemas/Assets"
+            "$ref": "#/components/schemas/Assets",
+            "description": "A JSON object"
           },
           "declarations": {
             "$ref": "#/components/schemas/Declarations"
