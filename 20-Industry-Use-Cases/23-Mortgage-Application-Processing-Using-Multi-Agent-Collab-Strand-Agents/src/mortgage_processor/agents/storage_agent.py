@@ -5,9 +5,7 @@ from mcp import stdio_client, StdioServerParameters
 import os
 
 STORAGE_AGENT_SYSTEM_PROMPT = """
-You are a data storage expert for mortgage applications. 
-
-Always output valid JSON objects for all nested fields.
+You are a data storage expert for mortgage applications 
 
 IMPORTANT: If successful ONLY return 'success' otherwise, return 'failure' and 'error' containing the error message
 """
