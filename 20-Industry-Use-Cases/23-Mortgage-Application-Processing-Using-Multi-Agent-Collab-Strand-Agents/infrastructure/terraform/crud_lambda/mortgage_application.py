@@ -80,15 +80,9 @@ class ApplicationStatus(Enum):
     WITHDRAWN = "withdrawn"
 
 
-class BankAccountAttribute(MapAttribute):
-    """Bank account information."""
-    account_number: UnicodeAttribute = UnicodeAttribute()
-    bank: UnicodeAttribute = UnicodeAttribute()
-    value: NumberAttribute = NumberAttribute()
-
-
-class InvestmentAccountAttribute(MapAttribute):
-    """Investment account information."""
+class FinancialAccountAttribute(MapAttribute):
+    """Financial account information."""
+    type: UnicodeAttribute = UnicodeAttribute()  # checking, savings, retirement, stocks, other
     account_number: UnicodeAttribute = UnicodeAttribute()
     institution: UnicodeAttribute = UnicodeAttribute()
     value: NumberAttribute = NumberAttribute()
@@ -96,61 +90,59 @@ class InvestmentAccountAttribute(MapAttribute):
 
 class AssetsAttribute(MapAttribute):
     """Asset information."""
-    checking_account: BankAccountAttribute = BankAccountAttribute(null=True)
-    savings_account: BankAccountAttribute = BankAccountAttribute(null=True)
-    retirement_account: InvestmentAccountAttribute = InvestmentAccountAttribute(null=True)
-    stocks: InvestmentAccountAttribute = InvestmentAccountAttribute(null=True)
+    accounts: ListAttribute[FinancialAccountAttribute] = ListAttribute(of=FinancialAccountAttribute)
     other_assets: NumberAttribute = NumberAttribute(null=True)
 
 
-class DeclarationsAttribute(MapAttribute):
-    """Borrower declarations."""
-    connections_to_seller: BooleanAttribute = BooleanAttribute()
-    other_liens: BooleanAttribute = BooleanAttribute()
-    other_mortgage_applications: BooleanAttribute = BooleanAttribute()
-    owned_property_past_36_months: BooleanAttribute = BooleanAttribute()
-    pending_credit_applications: BooleanAttribute = BooleanAttribute()
-    primary_residence: BooleanAttribute = BooleanAttribute()
-    undisclosed_financial_assistance: BooleanAttribute = BooleanAttribute()
+class DeclarationAttribute(MapAttribute):
+    """Individual declaration question and answer."""
+    question: UnicodeAttribute = UnicodeAttribute()
+    answer: BooleanAttribute = BooleanAttribute()
 
 
-class MonthlyIncomeAttribute(MapAttribute):
+class IncomeAttribute(MapAttribute):
     """Monthly income breakdown."""
     base: NumberAttribute = NumberAttribute()
     bonus: NumberAttribute = NumberAttribute()
 
 
+class DurationAttribute(MapAttribute):
+    """Duration in years and months."""
+    years: NumberAttribute = NumberAttribute()
+    months: NumberAttribute = NumberAttribute()
+
+
 class EmploymentInformationAttribute(MapAttribute):
     """Employment details."""
     employer: UnicodeAttribute = UnicodeAttribute()
-    position: UnicodeAttribute = UnicodeAttribute()
     address: UnicodeAttribute = UnicodeAttribute()
     phone: UnicodeAttribute = UnicodeAttribute()
-    start_date: UnicodeAttribute = UnicodeAttribute()  # MM/DD/YYYY format
-    time_in_field: UnicodeAttribute = UnicodeAttribute()
-    monthly_income: MonthlyIncomeAttribute = MonthlyIncomeAttribute()
+    position: UnicodeAttribute = UnicodeAttribute()
+    monthly_income: IncomeAttribute = IncomeAttribute()
+    start_date: UnicodeAttribute = UnicodeAttribute()  # ISO date format
+    time_in_field: DurationAttribute = DurationAttribute()
 
 
-class LoanAttribute(MapAttribute):
+class LoanAccountAttribute(MapAttribute):
     """Individual loan information."""
     account_number: UnicodeAttribute = UnicodeAttribute()
     institution: UnicodeAttribute = UnicodeAttribute()
-    type: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
     balance: NumberAttribute = NumberAttribute()
     monthly_payment: NumberAttribute = NumberAttribute()
+    type: UnicodeAttribute = UnicodeAttribute()  # Other Loan, Installment Loan, Revolving Credit
 
 
-class LiabilitiesAttribute(MapAttribute):
-    """Liability information."""
-    loans: ListAttribute[LoanAttribute] = ListAttribute(of=LoanAttribute, default=list)
+class PropertyAttribute(MapAttribute):
+    """Property information."""
+    address: UnicodeAttribute = UnicodeAttribute()
+    value: NumberAttribute = NumberAttribute()
 
 
 class LoanInformationAttribute(MapAttribute):
     """Loan request details."""
-    purpose: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
-    occupancy: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
-    property_address: UnicodeAttribute = UnicodeAttribute()
-    property_value: NumberAttribute = NumberAttribute()
+    purpose: UnicodeAttribute = UnicodeAttribute()  # Purchase, Refinance, Construction, Other
+    occupancy: UnicodeAttribute = UnicodeAttribute()  # Primary Residence, Secondary Residence, Investment Property
+    property: PropertyAttribute = PropertyAttribute()
 
 
 class LoanOriginatorInformationAttribute(MapAttribute):
@@ -166,37 +158,26 @@ class LoanOriginatorInformationAttribute(MapAttribute):
     email: UnicodeAttribute = UnicodeAttribute()
 
 
-class ContactAttribute(MapAttribute):
+class ContactInformationAttribute(MapAttribute):
     """Contact information."""
     current_address: UnicodeAttribute = UnicodeAttribute()
-    time_at_address: UnicodeAttribute = UnicodeAttribute()
-    housing_situation: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
-    housing_payment: NumberAttribute = NumberAttribute()
-    phone: UnicodeAttribute = UnicodeAttribute()
+    time_at_address: DurationAttribute = DurationAttribute()
+    cell_phone: UnicodeAttribute = UnicodeAttribute()
+    home_phone: UnicodeAttribute = UnicodeAttribute(null=True)
     email: UnicodeAttribute = UnicodeAttribute()
+    housing_payment: NumberAttribute = NumberAttribute()
+    housing_situation: UnicodeAttribute = UnicodeAttribute()  # Renting, Own, Living with Others, Other
 
 
 class PersonalInformationAttribute(MapAttribute):
     """Personal information."""
-    first_name: UnicodeAttribute = UnicodeAttribute()
-    last_name: UnicodeAttribute = UnicodeAttribute()
-    date_of_birth: UnicodeAttribute = UnicodeAttribute()  # MM/DD/YYYY format
-    marital_status: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
+    date_of_birth: UnicodeAttribute = UnicodeAttribute()  # ISO date format
+    citizenship: UnicodeAttribute = UnicodeAttribute()  # U.S. Citizen, Permanent Resident, Non-Resident Alien
+    marital_status: UnicodeAttribute = UnicodeAttribute()  # Single, Married, Separated, Divorced, Widowed
     dependents: NumberAttribute = NumberAttribute()
-    citizenship: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
-    credit_type: UnicodeAttribute = UnicodeAttribute()  # Enum value as string
-    contact: ContactAttribute = ContactAttribute()
+    credit_type: UnicodeAttribute = UnicodeAttribute()  # Individual application, Joint application
+    contact: ContactInformationAttribute = ContactInformationAttribute()
 
-
-class ConfigurationAttribute(MapAttribute):
-    """Main configuration object."""   
-    personal_information: PersonalInformationAttribute = PersonalInformationAttribute()
-    employment_information: EmploymentInformationAttribute = EmploymentInformationAttribute()
-    assets: AssetsAttribute = AssetsAttribute()
-    liabilities: LiabilitiesAttribute = LiabilitiesAttribute()
-    loan_information: LoanInformationAttribute = LoanInformationAttribute()
-    loan_originator_information: LoanOriginatorInformationAttribute = LoanOriginatorInformationAttribute()
-    declarations: DeclarationsAttribute = DeclarationsAttribute()
 
 class MortgageApplication(Model):
     """
@@ -210,15 +191,21 @@ class MortgageApplication(Model):
         enable_backup = True
     
     application_id: UnicodeAttribute = UnicodeAttribute(hash_key=True, default=str(uuid4()))
-    description: UnicodeAttribute = UnicodeAttribute()
     borrower_name: UnicodeAttribute = UnicodeAttribute()
-    ssn: UnicodeAttribute = UnicodeAttribute()  # Should be encrypted in production
+    ssn: UnicodeAttribute = UnicodeAttribute()
     loan_amount: NumberAttribute = NumberAttribute()
+    assets: AssetsAttribute = AssetsAttribute()
+    declarations: ListAttribute[DeclarationAttribute] = ListAttribute(of=DeclarationAttribute)
+    employment_information: EmploymentInformationAttribute = EmploymentInformationAttribute()
+    liabilities: ListAttribute[LoanAccountAttribute] = ListAttribute(of=LoanAccountAttribute)
+    loan_information: LoanInformationAttribute = LoanInformationAttribute()
+    loan_originator_information: LoanOriginatorInformationAttribute = LoanOriginatorInformationAttribute()
+    personal_information: PersonalInformationAttribute = PersonalInformationAttribute()
+    
+    # Additional fields for internal use
     status: UnicodeAttribute = UnicodeAttribute(default=ApplicationStatus.PENDING.value)
     version: UnicodeAttribute = UnicodeAttribute(default="1.0")
-    
-    configuration: ConfigurationAttribute = ConfigurationAttribute()
-    
+    description: UnicodeAttribute = UnicodeAttribute()
     created_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     updated_at: UTCDateTimeAttribute = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
     
@@ -228,41 +215,29 @@ class MortgageApplication(Model):
         borrower_name: str,
         ssn: str,
         loan_amount: Union[int, float, Decimal],
-        configuration: Dict[str, Any],
-        description: Optional[str] = None,
+        assets: Dict[str, Any],
+        declarations: List[Dict[str, Any]],
+        employment_information: Dict[str, Any],
+        liabilities: List[Dict[str, Any]],
+        loan_information: Dict[str, Any],
+        loan_originator_information: Dict[str, Any],
+        personal_information: Dict[str, Any],
     ) -> MortgageApplication:
         """
         Factory method to create a new mortgage application.
-        
-        Args:
-            borrower_name: Name of the borrower
-            ssn: Social Security Number
-            loan_amount: Requested loan amount
-            configuration_data: Detailed application configuration
-            description: Optional description
-            
-        Returns:
-            New mortgage application instance
-            
-        Raises:
-            ValueError: If required fields are invalid
-            PutError: If save operation fails
         """
-        if description is None:
-            description = f"Mortgage application for {borrower_name}"
-        
-        now = datetime.now(timezone.utc)
-        configuration['created_at'] = str(now)
-        configuration['updated_at'] = str(now)
-        config = ConfigurationAttribute(**configuration)
-        
         try:
             application = cls(
                 borrower_name=borrower_name,
                 ssn=ssn,
                 loan_amount=loan_amount,
-                description=description,
-                configuration=config,
+                assets=AssetsAttribute(**assets),
+                declarations=[DeclarationAttribute(**d) for d in declarations],
+                employment_information=EmploymentInformationAttribute(**employment_information),
+                liabilities=[LoanAccountAttribute(**l) for l in liabilities],
+                loan_information=LoanInformationAttribute(**loan_information),
+                loan_originator_information=LoanOriginatorInformationAttribute(**loan_originator_information),
+                personal_information=PersonalInformationAttribute(**personal_information),
             )
             
             application.save()
@@ -292,43 +267,38 @@ class MortgageApplication(Model):
 if __name__ == "__main__":
     # Minimal test assuming table exists
     try:
-        # Test basic functionality
-        config_data = {
-            'created_at': datetime.now(timezone.utc),
-            'updated_at': datetime.now(timezone.utc),
-            'personal_information': {
-                'date_of_birth': '01/01/1980',
-                'marital_status': MaritalStatus.SINGLE.value,
-                'dependents': 0,
-                'citizenship': CitizenshipType.US_CITIZEN.value,
-                'credit_type': CreditType.INDIVIDUAL.value,
-                'contact': {
-                    'current_address': '123 Test St',
-                    'time_at_address': '2 years',
-                    'housing_situation': HousingSituation.RENTING.value,
-                    'housing_payment': 1500,
-                    'phone': '555-0124',
-                    'email': 'test@example.com'
-                }
+        # Create test application
+        app = MortgageApplication.create_application(
+            borrower_name="Test Borrower",
+            ssn="123-45-6789",
+            loan_amount=250000,
+            assets={
+                'accounts': [
+                    {'type': 'checking', 'account_number': '12345', 'institution': 'Test Bank', 'value': 15000}
+                ],
+                'other_assets': 5000
             },
-            'employment_information': {
+            declarations=[
+                {'question': 'Do you have any connections to the seller?', 'answer': False}
+            ],
+            employment_information={
                 'employer': 'Test Corp',
-                'position': 'Developer',
                 'address': '456 Work Ave',
                 'phone': '555-0125',
-                'start_date': '01/01/2020',
-                'time_in_field': '5 years',
-                'monthly_income': {'base': 5000, 'bonus': 500, 'gross_total': 5500}
+                'position': 'Developer',
+                'monthly_income': {'base': 5000, 'bonus': 500},
+                'start_date': '2020-01-01',
+                'time_in_field': {'years': 5, 'months': 0}
             },
-            'assets': {'total_assets_value': 25000},
-            'liabilities': {'loans': [], 'total_monthly_debt': 200},
-            'loan_information': {
-                'purpose': LoanPurpose.PURCHASE.value,
-                'occupancy': OccupancyType.PRIMARY_RESIDENCE.value,
-                'property_address': '789 Dream St',
-                'property_value': 300000
+            liabilities=[
+                {'account_number': 'CC123', 'institution': 'Credit Card Co', 'balance': 2000, 'monthly_payment': 100, 'type': 'Revolving Credit'}
+            ],
+            loan_information={
+                'purpose': 'Purchase',
+                'occupancy': 'Primary Residence',
+                'property': {'address': '789 Dream St', 'value': 300000}
             },
-            'loan_originator_information': {
+            loan_originator_information={
                 'loan_originator_name': 'Test Originator',
                 'loan_originator_nmlsr_id': 'TEST123',
                 'originator_state_license_id': 'ST123',
@@ -339,23 +309,21 @@ if __name__ == "__main__":
                 'phone': '555-0126',
                 'email': 'originator@test.com'
             },
-            'declarations': {
-                'connections_to_seller': False,
-                'other_liens': False,
-                'other_mortgage_applications': False,
-                'owned_property_past_36_months': False,
-                'pending_credit_applications': False,
-                'primary_residence': True,
-                'undisclosed_financial_assistance': False
+            personal_information={
+                'date_of_birth': '1980-01-01',
+                'citizenship': 'U.S. Citizen',
+                'marital_status': 'Single',
+                'dependents': 0,
+                'credit_type': 'Individual application',
+                'contact': {
+                    'current_address': '123 Test St',
+                    'time_at_address': {'years': 2, 'months': 0},
+                    'cell_phone': '555-0124',
+                    'email': 'test@example.com',
+                    'housing_payment': 1500,
+                    'housing_situation': 'Renting'
+                }
             }
-        }
-        
-        # Create test application
-        app = MortgageApplication.create_application(
-            borrower_name="Test Borrower",
-            ssn="123-45-6789",
-            loan_amount=250000,
-            configuration=config_data
         )
         
         print(f"✅ Created application: {app.application_id}")
