@@ -1,12 +1,10 @@
 import json
-from src.mortgage_processor.agents.data_extraction_agent import DATA_EXTRACTION_SYSTEM_PROMPT, bda_mcp_client
 from strands import Agent
-from src.mortgage_processor.agents.validation_agent import VALIDATION_AGENT_SYSTEM_PROMPT
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands.types.content import ContentBlock
 import boto3
 from strands.multiagent import GraphBuilder
-from src.mortgage_processor.agents.storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT, aws_api_mcp_client
+from src.mortgage_processor.agents.storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT
 import os
 from src.mortgage_processor.mcp.mcp_client import get_gateway_mcp_client
 
