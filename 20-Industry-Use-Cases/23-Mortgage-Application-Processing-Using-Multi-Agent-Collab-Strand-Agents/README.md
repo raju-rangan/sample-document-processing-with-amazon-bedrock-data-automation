@@ -29,5 +29,5 @@ And launch it to AWS:
 ```sh
 agentcore launch
 ```
-'{ "bucket": "raw-document-store20250802224425881600000001", "key": "-3195903774208638100.pdf" }'
+
 ### Test the agent
