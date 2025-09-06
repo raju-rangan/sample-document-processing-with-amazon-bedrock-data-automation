@@ -245,24 +245,6 @@
                             "type": "string",
                             "description": "Borrower's current residential address"
                           },
-                          "time_at_address": {
-                            "type": "object",
-                            "description": "Length of time at current address",
-                            "properties": {
-                              "years": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "description": "Number of years at current address"
-                              },
-                              "months": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "maximum": 11,
-                                "description": "Additional months at current address (0-11)"
-                              }
-                            },
-                            "required": ["years", "months"]
-                          },
                           "cell_phone": {
                             "type": "string",
                             "description": "Borrower's cell phone number"
@@ -293,7 +275,6 @@
                         },
                         "required": [
                           "address",
-                          "time_at_address",
                           "cell_phone",
                           "email",
                           "housing_payment",

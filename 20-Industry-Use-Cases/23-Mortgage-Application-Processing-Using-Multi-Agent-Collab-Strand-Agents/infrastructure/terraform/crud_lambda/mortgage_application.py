@@ -123,8 +123,6 @@ class EmployerAttribute(MapAttribute):
 class ContactInformationAttribute(MapAttribute):
     """Contact info."""
     address = UnicodeAttribute()
-    years = NumberAttribute()
-    months = NumberAttribute()
     cell_phone = UnicodeAttribute()
     email = UnicodeAttribute()
     home_phone = UnicodeAttribute(null=True)
