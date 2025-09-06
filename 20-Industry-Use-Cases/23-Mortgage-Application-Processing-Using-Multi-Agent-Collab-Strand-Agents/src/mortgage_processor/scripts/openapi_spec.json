@@ -69,10 +69,6 @@
                             "value"
                           ]
                         }
-                      },
-                      "other_assets": {
-                        "type": "number",
-                        "description": "Value of other assets not listed in accounts"
                       }
                     },
                     "required": ["accounts"]
@@ -101,9 +97,6 @@
                           "type": "string"
                         },
                         "address": {
-                          "type": "string"
-                        },
-                        "phone": {
                           "type": "string"
                         },
                         "position": {
