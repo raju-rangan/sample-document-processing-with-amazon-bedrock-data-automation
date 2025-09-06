@@ -102,17 +102,11 @@
                         "position": {
                           "type": "string"
                         },
-                        "monthly_income": {
-                          "type": "object",
-                          "properties": {
-                            "base": {
-                              "type": "number"
-                            },
-                            "bonus": {
-                              "type": "number"
-                            }
-                          },
-                          "required": ["base"]
+                        "monthly_base_income": {
+                          "type": "integer"
+                        },
+                        "monthly_bonus_income": {
+                          "type": "integer"
                         },
                         "start_date": {
                           "type": "string",
@@ -129,7 +123,7 @@
                         "employer",
                         "address",
                         "position",
-                        "monthly_income",
+                        "monthly_base_income",
                         "start_date"
                       ]
                     }
