@@ -70,6 +70,7 @@ class ApplicationStatus(Enum):
     DENIED = "denied"
     WITHDRAWN = "withdrawn"
 
+
 class StatusIndex(GlobalSecondaryIndex):
     """
     GSI for querying applications by status.
@@ -112,12 +113,11 @@ class EmployerAttribute(MapAttribute):
     """Employment history record."""
     employer = UnicodeAttribute()
     position = UnicodeAttribute()
+    address = UnicodeAttribute()
     monthly_base_income = NumberAttribute()
     monthly_bonus_income = NumberAttribute(null=True)
     start_date = UnicodeAttribute()  # ISO format
     end_date = UnicodeAttribute(null=True)  # if left
-    years = NumberAttribute()
-    months = NumberAttribute()
 
 
 class ContactInformationAttribute(MapAttribute):
@@ -160,9 +160,11 @@ class LoanInformationAttribute(MapAttribute):
     occupancy = UnicodeAttribute()
     property = PropertyAttribute()
 
+
 class DeclarationAttribute(MapAttribute):
     question = UnicodeAttribute()
     answer = BooleanAttribute()
+
 
 class MortgageApplication(Model):
     """
