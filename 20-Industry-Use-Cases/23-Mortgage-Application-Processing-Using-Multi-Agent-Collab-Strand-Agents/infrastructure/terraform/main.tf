@@ -396,121 +396,100 @@ module "mortgage_applications_lambda" {
   }
 }
 
-# module "eventbridge" {
-#   source = "terraform-aws-modules/eventbridge/aws"
+module "eventbridge" {
+  source = "terraform-aws-modules/eventbridge/aws"
+  version = "4.1.0"
 
-#   create_bus = false
+  create_bus = false
 
-#   attach_lambda_policy = true
-#   lambda_target_arns   = [module.mortgage_applications_agentcore_lambda.lambda_function_arn]
+  rules = {
+    bda = {
+      description   = "Capture all BDA data"
+      enabled       = true
+      event_pattern = jsonencode({ "source" : ["aws.bedrock"], "detail-type": ["Bedrock Data Automation Job Succeeded"] })
+    }
+  }
 
-#   rules = {
-#     orders = {
-#       description   = "Capture all bedrock data"
-#       event_pattern = jsonencode({ "source" : ["aws.bedrock", "aws.bedrock-test"] })
-#       enabled       = true
-#     }
-#   }
+  targets = {
+    bda = [
+      {
+        name            = "send-bda-to-lambda"
+        arn             = module.mortgage_applications_agentcore_lambda.lambda_function_arn
+      },
+    ]
+  }
 
-#   targets = {
-#     orders = [
-#       {
-#         name            = "send-orders-to-lambda"
-#         arn             = module.mortgage_applications_agentcore_lambda.lambda_function_arn
-#       },
-#     ]
-#   }
+  tags = {
+    Name = "my-bus"
+  }
+}
 
-#   tags = {
-#     Name = "my-bus"
-#   }
-# }
+module "mortgage_applications_agentcore_lambda" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 8.0.1"
 
-# resource "aws_cloudwatch_event_rule" "bedrock_job_completion" {
-#   description = "Triggers on Bedrock Data Automation job completion"
-#   event_pattern = jsonencode({
-#     "source"      = ["aws.bedrock", "aws.bedrock-test"],
-#     "detail-type" = [
-#         "Bedrock Data Automation Job Succeeded", 
-#         "Bedrock Data Automation Job Failed With Client Error", 
-#         "Bedrock Data Automation Job Failed With Service Error"
-#     ],
-#   })
-# }
+  function_name = "mortgage-agentcore"
+  description   = "Mortgage application agentcore"
+  handler       = "main.lambda_handler"
+  runtime       = "python3.13"
+  timeout       = 30
+  memory_size   = 256
+  publish       = true
 
-# resource "aws_cloudwatch_event_target" "lambda_target" {
-#   rule      = aws_cloudwatch_event_rule.bedrock_job_completion.name
-#   target_id = "sendToLambda"
-#   arn       = module.mortgage_applications_agentcore_lambda.lambda_function_arn
-# }
+  source_path = "${path.module}/agentcore_lambda"
 
-# resource "aws_lambda_permission" "allow_eventbridge" {
-#   statement_id  = "AllowExecutionFromEventBridge"
-#   action        = "lambda:InvokeFunction"
-#   function_name = module.mortgage_applications_agentcore_lambda.lambda_function_name
-#   principal     = "events.amazonaws.com"
-#   source_arn    = aws_cloudwatch_event_rule.bedrock_job_completion.arn
-# }
+  environment_variables = {
+    AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok"
+    AGENT_ENDPOINT_NAME = "DEFAULT"
+  }
 
-# module "mortgage_applications_agentcore_lambda" {
-#   source  = "terraform-aws-modules/lambda/aws"
-#   version = "~> 8.0.1"
+  attach_policy_statements = true
+  policy_statements = {
+    bedrock_agent_core = {
+      effect = "Allow"
+      actions = [
+        "bedrock-agentcore:*"
+      ]
+      resources = ["*"]
+    }
 
-#   function_name = "mortgage-agentcore"
-#   description   = "Mortgage application agentcore"
-#   handler       = "main.lambda_handler"
-#   runtime       = "python3.13"
-#   timeout       = 30
-#   memory_size   = 256
-#   publish       = true
+    bedrock_data_automation = {
+      effect = "Allow"
+      actions = [
+        "bedrock:*"
+      ]
+      resources = ["*"]
+    }
 
-#   source_path = "${path.module}/agentcore_lambda"
+    s3_read_only = {
+      effect = "Allow"
+      actions = [
+        "s3:Get*",
+        "s3:List*",
+      ]
+      resources = [
+        "arn:aws:s3:::*",
+        "arn:aws:s3:::*/*"
+      ]
+    }
+  }
 
-#   environment_variables = {
-#     AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok"
-#     AGENT_ENDPOINT_NAME = "DEFAULT"
-#   }
+  cloudwatch_logs_retention_in_days = 14
 
-#   attach_policy_statements = true
-#   policy_statements = {
-#     bedrock_agent_core = {
-#       effect = "Allow"
-#       actions = [
-#         "bedrock-agentcore:*"
-#       ]
-#       resources = ["*"]
-#     }
-
-#     bedrock_data_automation = {
-#       effect = "Allow"
-#       actions = [
-#         "bedrock:*"
-#       ]
-#       resources = ["*"]
-#     }
-
-#     s3_read_only = {
-#       effect = "Allow"
-#       actions = [
-#         "s3:Get*",
-#         "s3:List*",
-#       ]
-#       resources = [
-#         "arn:aws:s3:::*",
-#         "arn:aws:s3:::*/*"
-#       ]
-#     }
-#   }
-
-#   cloudwatch_logs_retention_in_days = 14
-
-#   create_lambda_function_url = false
+  create_lambda_function_url = false
   
-#   tags = {
-#     Name        = "mortgage-applications-agentcore"
-#     Terraform   = "true"
-#   }
-# }
+  tags = {
+    Name        = "mortgage-applications-agentcore"
+    Terraform   = "true"
+  }
+
+  allowed_triggers = {
+    AllowEventBridgeInvocation = {
+      principal  = "events.amazonaws.com"
+      source_arn = module.eventbridge.eventbridge_rule_arns["bda"]
+    }
+  }
+}
 
 module "mortgage_applications_preprocessor_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
@@ -577,7 +556,6 @@ module "mortgage_applications_preprocessor_lambda" {
   }
 }
 
-# HTTP API Gateway v2 using terraform-aws-modules for best practices
   module "apigateway-v2" {
     source  = "terraform-aws-modules/apigateway-v2/aws"
     version = "5.3.0"
@@ -586,11 +564,9 @@ module "mortgage_applications_preprocessor_lambda" {
     description   = "HTTP API Gateway for mortgage applications CRUD operations"
     protocol_type = "HTTP"
 
-    # Disable domain features
     create_domain_name = false
     create_certificate = false
 
-    # CORS configuration
     cors_configuration = {
       allow_credentials = false
       allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
@@ -646,7 +622,6 @@ module "mortgage_applications_preprocessor_lambda" {
     }
   }
 
-# Lambda permission for HTTP API Gateway to invoke the function
 resource "aws_lambda_permission" "api_gateway_lambda" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"

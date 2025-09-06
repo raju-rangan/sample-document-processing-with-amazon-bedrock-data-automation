@@ -81,13 +81,11 @@ def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
 
 def create_application(data: Dict[str, Any]) -> Dict[str, Any]:
     try:
-        application = MortgageApplication.create_application(
+        application: MortgageApplication = MortgageApplication.create_application(
             **data
         )
 
-        result = application.to_simple_dict()
-        
-        return response(201, {"message": "Application created", "data": result})
+        return response(201, {"application_id": application.application_id})
 
     except Exception as e:
         logger.exception("Error creating application")
