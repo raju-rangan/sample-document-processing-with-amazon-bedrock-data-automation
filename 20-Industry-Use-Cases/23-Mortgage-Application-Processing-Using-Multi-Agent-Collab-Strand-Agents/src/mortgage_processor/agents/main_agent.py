@@ -24,21 +24,6 @@ async def invoke_graph(prompt):
     gateway_mcp_client = get_gateway_mcp_client(region=os.environ.get('AWS_REGION','us-east-1'))
     with gateway_mcp_client:
         gateway_tools = gateway_mcp_client.list_tools_sync()
-        # aws_api_tools = aws_api_mcp_client.list_tools_sync()
-        # bda_mcp_tools = bda_mcp_client.list_tools_sync()
-
-        # data_extraction_agent = Agent( 
-        #     name="data_extraction_agent",
-        #     system_prompt=DATA_EXTRACTION_SYSTEM_PROMPT,
-        #     model=bedrock_model,
-        #     tools=[bda_mcp_tools],
-        # )
-
-        # validation_agent = Agent(
-        #     name="validation_agent",
-        #     system_prompt=VALIDATION_AGENT_SYSTEM_PROMPT,
-        #     model=bedrock_model,
-        # )
 
         storage_agent = Agent(
             name="storage_agent",
@@ -62,7 +47,6 @@ async def invoke_graph(prompt):
         result = await graph.invoke_async(prompt)
         return result
 
-os.makedirs('./files', exist_ok=True)
 
 session = boto3.Session(region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 s3_client = session.client('s3')
@@ -72,10 +56,6 @@ async def process_mortgage(payload):
     prompt = payload.get(
         "prompt", "No prompt"
     )
-
-    # local_path = f'/app/files/{hash(key)}.pdf'
-    # if not os.path.exists(local_path):
-    #     s3_client.download_file(bucket, key, local_path)
 
     content_blocks = [
         ContentBlock(text="""

@@ -18,16 +18,6 @@ session = boto3.Session(
 
 bedrock_model = BedrockModel(
     model_id="us.amazon.nova-pro-v1:0",
-    temperature=0.7,
+    temperature=0.0,
     boto_session=session,
 )
-
-env = os.environ.copy()
-
-aws_api_mcp_client = MCPClient(lambda: stdio_client(
-    StdioServerParameters(
-        command="uvx", 
-        args=["awslabs.aws-api-mcp-server@latest"],
-        env=env
-    )
-))
