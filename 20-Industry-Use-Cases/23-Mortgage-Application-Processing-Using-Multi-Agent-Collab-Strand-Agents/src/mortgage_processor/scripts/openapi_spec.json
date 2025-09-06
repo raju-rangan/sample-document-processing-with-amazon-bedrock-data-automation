@@ -241,7 +241,7 @@
                         "type": "object",
                         "description": "Borrower's contact information and current living situation",
                         "properties": {
-                          "current_address": {
+                          "address": {
                             "type": "string",
                             "description": "Borrower's current residential address"
                           },
@@ -292,7 +292,7 @@
                           }
                         },
                         "required": [
-                          "current_address",
+                          "address",
                           "time_at_address",
                           "cell_phone",
                           "email",
