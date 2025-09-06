@@ -128,7 +128,6 @@
                       "required": [
                         "employer",
                         "address",
-                        "phone",
                         "position",
                         "monthly_income",
                         "start_date"
