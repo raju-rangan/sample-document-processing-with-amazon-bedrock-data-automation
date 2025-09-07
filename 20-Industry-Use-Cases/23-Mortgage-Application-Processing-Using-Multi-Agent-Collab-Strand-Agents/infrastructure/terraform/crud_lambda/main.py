@@ -1,9 +1,8 @@
 import json
 import os
-import logging
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
@@ -64,10 +63,6 @@ def required_param(params: dict, key: str) -> str:
     return params[key]
 
 
-def validate_required(data: Dict[str, Any], fields: list) -> list:
-    return [f for f in fields if not data.get(f)]
-
-
 def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "statusCode": status_code,
@@ -97,7 +92,7 @@ def get_application(app_id: Optional[str]) -> Dict[str, Any]:
         return response(400, {"error": "application_id required"})
 
     try:
-        application = MortgageApplication.get_application_safely(app_id)
+        application = MortgageApplication.get(hash_key=app_id)
         
         if not application:
             return response(404, {"error": "Application not found"})
@@ -143,7 +138,7 @@ def update_application(app_id: Optional[str], data: Dict[str, Any]) -> Dict[str,
         return response(400, {"error": "Update data required"})
 
     try:
-        application = MortgageApplication.get_application_safely(app_id)
+        application = MortgageApplication.get(hash_key=app_id)
         if not application:
             return response(404, {"error": "Application not found"})
 
@@ -185,7 +180,7 @@ def delete_application(app_id: Optional[str]) -> Dict[str, Any]:
         return response(400, {"error": "application_id required"})
 
     try:
-        application = MortgageApplication.get_application_safely(app_id)
+        application = MortgageApplication.get(hash_key=app_id)
         if not application:
             return response(404, {"error": "Application not found"})
 

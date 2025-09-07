@@ -1,7 +1,6 @@
 from strands.tools.mcp import MCPClient
 import boto3
 from strands.models import BedrockModel
-from mcp import stdio_client, StdioServerParameters
 import os
 
 STORAGE_AGENT_SYSTEM_PROMPT = """

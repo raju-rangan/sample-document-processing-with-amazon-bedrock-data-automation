@@ -11,12 +11,14 @@ dependencies = [
     "strands-agents",
     "strands-agents-tools",
     "bedrock-agentcore",
+    "aws_lambda_powertools",
     "aws-opentelemetry-distro",
     "bedrock-agentcore-starter-toolkit",
     "uv",
     "requests",
     "pyyaml",
-    "pynamodb"
+    "pynamodb",
+    "smart_open"
 ]
 
 [build-system]

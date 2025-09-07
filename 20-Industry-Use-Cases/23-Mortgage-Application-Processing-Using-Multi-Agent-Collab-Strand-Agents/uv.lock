@@ -110,6 +110,19 @@ wheels = [
 ]
 
 [[package]]
+name = "aws-lambda-powertools"
+version = "3.19.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "jmespath" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/58/db/eb2708f7c27ab02b8d85936ce9308538e1e22c8c8224be5f00da3e6f44f7/aws_lambda_powertools-3.19.0.tar.gz", hash = "sha256:8897ba4be0b3a51f2b8f68946d650f3ef574fa2c40395544de03bd0c61979999", size = 689768, upload-time = "2025-08-12T08:45:46.887Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/52/5a73194286af329309263e9c4e2a57b8feac63bb6027be8d2d6222cd4da7/aws_lambda_powertools-3.19.0-py3-none-any.whl", hash = "sha256:98f18d35f843cd46b80ccadcf39eefc0c489325bea116383bd93048a5241d9fc", size = 832645, upload-time = "2025-08-12T08:45:44.982Z" },
+]
+
+[[package]]
 name = "aws-opentelemetry-distro"
 version = "0.10.1"
 source = { registry = "https://pypi.org/simple" }
@@ -811,6 +824,7 @@ name = "mortgage-processor"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aws-lambda-powertools" },
     { name = "aws-opentelemetry-distro" },
     { name = "bedrock-agentcore" },
     { name = "bedrock-agentcore-starter-toolkit" },
@@ -821,6 +835,7 @@ dependencies = [
     { name = "pynamodb" },
     { name = "pyyaml" },
     { name = "requests" },
+    { name = "smart-open" },
     { name = "strands-agents" },
     { name = "strands-agents-tools" },
     { name = "uv" },
@@ -828,6 +843,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aws-lambda-powertools" },
     { name = "aws-opentelemetry-distro" },
     { name = "bedrock-agentcore" },
     { name = "bedrock-agentcore-starter-toolkit" },
@@ -838,6 +854,7 @@ requires-dist = [
     { name = "pynamodb" },
     { name = "pyyaml" },
     { name = "requests" },
+    { name = "smart-open" },
     { name = "strands-agents" },
     { name = "strands-agents-tools" },
     { name = "uv" },
@@ -2310,6 +2327,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/73/1e/bbf7fdd00306f097ddb839c23628b7e271128cc8f584b9cae8f704b3924e/slack_sdk-3.36.0.tar.gz", hash = "sha256:8586022bdbdf9f8f8d32f394540436c53b1e7c8da9d21e1eab4560ba70cfcffa", size = 233382, upload-time = "2025-07-09T20:58:22.838Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/70/9a/380d20856d9ea39fbc4d3bb66f076b0d72035ebe873eb05fc88ebee4125f/slack_sdk-3.36.0-py2.py3-none-any.whl", hash = "sha256:6c96887d7175fc1b0b2777b73bb65f39b5b8bee9bd8acfec071d64014f9e2d10", size = 293949, upload-time = "2025-07-09T20:58:21.233Z" },
+]
+
+[[package]]
+name = "smart-open"
+version = "7.3.0.post1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/18/2b/5e7234c68ed5bc872ad6ae77b8a421c2ed70dcb1190b44dc1abdeed5e347/smart_open-7.3.0.post1.tar.gz", hash = "sha256:ce6a3d9bc1afbf6234ad13c010b77f8cd36d24636811e3c52c3b5160f5214d1e", size = 51557, upload-time = "2025-07-03T10:06:31.271Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/08/5b/a2a3d4514c64818925f4e886d39981f1926eeb5288a4549c6b3c17ed66bb/smart_open-7.3.0.post1-py3-none-any.whl", hash = "sha256:c73661a2c24bf045c1e04e08fffc585b59af023fe783d57896f590489db66fb4", size = 61946, upload-time = "2025-07-03T10:06:29.599Z" },
 ]
 
 [[package]]
