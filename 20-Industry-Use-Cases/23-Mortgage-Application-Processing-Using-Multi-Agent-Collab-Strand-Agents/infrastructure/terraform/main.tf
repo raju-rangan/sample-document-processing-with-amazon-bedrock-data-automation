@@ -360,7 +360,7 @@ module "mortgage_applications_lambda" {
   memory_size   = 256
   publish       = true
 
-  source_path = "${path.module}/crud_lambda"
+  source_path = "${path.module}/lambdas/crud_lambda"
 
   environment_variables = {
     TABLE_NAME = "mortgage-applications"
@@ -436,7 +436,7 @@ module "mortgage_applications_agentcore_lambda" {
   memory_size   = 256
   publish       = true
 
-  source_path = "${path.module}/agentcore_lambda"
+  source_path = "${path.module}/lambdas/agentcore_lambda"
 
   environment_variables = {
     AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok"
@@ -503,7 +503,7 @@ module "mortgage_applications_preprocessor_lambda" {
   memory_size   = 256
   publish       = true
 
-  source_path = "${path.module}/preprocess_lambda"
+  source_path = "${path.module}/lambdas/preprocess_lambda"
 
   environment_variables = {
     BDA_PROFILE_ARN = "arn:aws:bedrock:us-east-1:145023138732:data-automation-profile/us.data-automation-v1"
@@ -568,8 +568,12 @@ module "lambda_authorizer" {
   memory_size   = 256
   publish = true
 
-  source_path = "${path.module}/lambda_authorizer"
+  source_path = "${path.module}/lambdas/lambda_authorizer"
 
+  environment_variables = {
+    API_KEY = "aaa"
+  }
+  
   allowed_triggers = {
     APIGateway = {
       service    = "apigateway"
@@ -581,15 +585,6 @@ module "lambda_authorizer" {
     Terraform = "true"
   }
 }
-
-# resource "aws_apigatewayv2_authorizer" "external" {
-#   api_id           = module.apigateway-v2.api_id
-#   authorizer_type                   = "REQUEST"
-#   authorizer_uri                    = module.lambda_authorizer.lambda_function_invoke_arn
-#   authorizer_payload_format_version = "2.0"
-#   identity_sources                  = ["$request.header.api_key"]
-#   name                              = "simple-header-authorizer"
-# }
 
 module "apigateway-v2" {
     source  = "terraform-aws-modules/apigateway-v2/aws"
