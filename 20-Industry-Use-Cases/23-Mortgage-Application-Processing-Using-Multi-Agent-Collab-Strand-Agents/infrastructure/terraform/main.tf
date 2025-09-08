@@ -556,27 +556,72 @@ module "mortgage_applications_preprocessor_lambda" {
   }
 }
 
-  module "apigateway-v2" {
+module "lambda_authorizer" {
+  source  = "terraform-aws-modules/lambda/aws"
+  version = "~> 8.0.1"
+
+  function_name = "api-gateway-authorizer"
+  description   = "Simple API key authorizer for API Gateway"
+  handler       = "main.lambda_handler"
+  runtime       = "python3.13"
+  timeout       = 30
+  memory_size   = 256
+  publish = true
+
+  source_path = "${path.module}/lambda_authorizer"
+
+  allowed_triggers = {
+    APIGateway = {
+      service    = "apigateway"
+      source_arn = "${module.apigateway-v2.api_execution_arn}/*/*"
+    }
+  }
+
+  tags = {
+    Terraform = "true"
+  }
+}
+
+# resource "aws_apigatewayv2_authorizer" "external" {
+#   api_id           = module.apigateway-v2.api_id
+#   authorizer_type                   = "REQUEST"
+#   authorizer_uri                    = module.lambda_authorizer.lambda_function_invoke_arn
+#   authorizer_payload_format_version = "2.0"
+#   identity_sources                  = ["$request.header.api_key"]
+#   name                              = "simple-header-authorizer"
+# }
+
+module "apigateway-v2" {
     source  = "terraform-aws-modules/apigateway-v2/aws"
-    version = "5.3.0"
+    version = "~> 5.3"
 
     name          = "mortgage-applications-api"
     description   = "HTTP API Gateway for mortgage applications CRUD operations"
-    protocol_type = "HTTP"
 
     create_domain_name = false
     create_certificate = false
 
     cors_configuration = {
-      allow_credentials = false
       allow_headers     = ["content-type", "x-amz-date", "authorization", "x-api-key", "x-amz-security-token", "x-amz-user-agent"]
       allow_methods     = ["*"]
       allow_origins     = ["*"]
-      max_age          = 86400
     }
-    
+
+    authorizers = {
+      simple_auth = {
+        authorizer_type                   = "REQUEST"
+        authorizer_uri                    = module.lambda_authorizer.lambda_function_invoke_arn
+        authorizer_payload_format_version = "2.0"
+        identity_sources                  = ["$request.header.api_key"]
+        name                              = "simple-header-authorizer"
+      }
+    }
+
     routes = {
       "POST /applications" = {
+        authorizer_key = "simple_auth"
+        authorization_type                   = "CUSTOM"
+
         integration = {
           uri                    = module.mortgage_applications_lambda.lambda_function_arn
           payload_format_version = "2.0"
@@ -585,6 +630,9 @@ module "mortgage_applications_preprocessor_lambda" {
       }
 
       "GET /applications" = {
+        authorizer_key = "simple_auth"
+        authorization_type                   = "CUSTOM"
+
         integration = {
           uri                    = module.mortgage_applications_lambda.lambda_function_arn
           payload_format_version = "2.0"
@@ -593,6 +641,9 @@ module "mortgage_applications_preprocessor_lambda" {
       }
 
       "GET /applications/{application_id}" = {
+        authorizer_key = "simple_auth"
+        authorization_type                   = "CUSTOM"
+
         integration = {
           uri                    = module.mortgage_applications_lambda.lambda_function_arn
           payload_format_version = "2.0"
@@ -601,6 +652,9 @@ module "mortgage_applications_preprocessor_lambda" {
       }
 
       "PUT /applications/{application_id}" = {
+        authorizer_key = "simple_auth"
+        authorization_type                   = "CUSTOM"
+
         integration = {
           uri                    = module.mortgage_applications_lambda.lambda_function_arn
           payload_format_version = "2.0"
@@ -609,6 +663,9 @@ module "mortgage_applications_preprocessor_lambda" {
       }
 
       "DELETE /applications/{application_id}" = {
+        authorizer_key = "simple_auth"
+        authorization_type                   = "CUSTOM"
+
         integration = {
           uri                    = module.mortgage_applications_lambda.lambda_function_arn
           payload_format_version = "2.0"

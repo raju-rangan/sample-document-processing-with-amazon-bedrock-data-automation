@@ -1,13 +1,14 @@
 import json
 import boto3
+from boto3 import Session
 import os
 from typing import Dict, Any
 from smart_open import open
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-AGENT_RUNTIME_ARN = os.environ.get("AGENT_RUNTIME_ARN")
-AGENT_ENDPOINT_NAME = os.environ.get("AGENT_ENDPOINT_NAME")
+AGENT_RUNTIME_ARN = os.environ["AGENT_RUNTIME_ARN"]
+AGENT_ENDPOINT_NAME = os.environ["AGENT_ENDPOINT_NAME"]
 
 logger = Logger(service="agentcore-service")
 

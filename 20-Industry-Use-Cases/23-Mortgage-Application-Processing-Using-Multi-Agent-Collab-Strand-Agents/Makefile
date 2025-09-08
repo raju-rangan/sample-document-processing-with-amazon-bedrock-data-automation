@@ -7,7 +7,7 @@ terraform-output:
 	cd infrastructure/terraform && terraform output
 
 terraform-init:
-	cd infrastructure/terraform && terraform init
+	cd infrastructure/terraform && terraform init -upgrade
 
 terraform-apply: terraform-init
 	cd infrastructure/terraform && terraform apply --auto-approve -var="agent_name=$(NAME)"

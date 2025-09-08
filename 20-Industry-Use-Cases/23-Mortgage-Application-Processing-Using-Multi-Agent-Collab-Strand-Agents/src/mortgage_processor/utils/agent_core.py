@@ -11,6 +11,21 @@ from botocore import exceptions
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 
+def reauthenticate_user(client_id):
+    boto_session = Session()
+    region = boto_session.region_name
+    cognito_client = boto3.client('cognito-idp', region_name=region)
+    auth_response = cognito_client.initiate_auth(
+        ClientId=client_id,
+        AuthFlow='USER_PASSWORD_AUTH',
+        AuthParameters={
+            'USERNAME': 'testuser',
+            'PASSWORD': 'MyPassword123!'
+        }
+    )
+    bearer_token = auth_response['AuthenticationResult']['AccessToken']
+    return bearer_token
+
 def setup_cognito_user_pool():
     boto_session = Session()
     region = boto_session.region_name

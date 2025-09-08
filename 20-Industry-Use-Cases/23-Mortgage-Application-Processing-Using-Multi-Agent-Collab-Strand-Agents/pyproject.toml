@@ -8,7 +8,7 @@ dependencies = [
     "pydantic",
     "boto3",
     "httpx",
-    "strands-agents",
+    "strands-agents~=1.7",
     "strands-agents-tools",
     "bedrock-agentcore",
     "aws_lambda_powertools",
@@ -18,7 +18,10 @@ dependencies = [
     "requests",
     "pyyaml",
     "pynamodb",
-    "smart_open"
+    "smart_open",
+    "streamlit>=1.49.1",
+    "pandas>=2.3.2",
+    "streamlit-antd-components>=0.3.2",
 ]
 
 [build-system]

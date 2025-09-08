@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 from pynamodb.attributes import (
@@ -191,6 +191,7 @@ class MortgageApplication(Model):
     liabilities = ListAttribute(of=LoanAccountAttribute)
     loan_information = LoanInformationAttribute()
     declarations = ListAttribute(of=DeclarationAttribute)
+    underwriter_notes = ListAttribute(of=UnicodeAttribute)
 
     version = UnicodeAttribute(default="1.0")
     created_at = UTCDateTimeAttribute(default=lambda: datetime.now(timezone.utc))
@@ -208,6 +209,7 @@ class MortgageApplication(Model):
         loan_information: Dict[str, Any],
         personal_information: Dict[str, Any],
         declarations: List[Dict[str, bool]],
+        underwriter_notes: List[str] = [],
     ) -> MortgageApplication:
         """
         Factory method to create a new mortgage application.
@@ -223,6 +225,7 @@ class MortgageApplication(Model):
                 loan_information=LoanInformationAttribute(**loan_information),
                 personal_information=PersonalInformationAttribute(**personal_information),
                 declarations=[DeclarationAttribute(**d) for d in declarations],
+                underwriter_notes = underwriter_notes,
             )
             application.save()
             return application

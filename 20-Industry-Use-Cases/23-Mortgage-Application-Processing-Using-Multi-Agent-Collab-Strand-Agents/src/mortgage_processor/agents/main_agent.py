@@ -1,24 +1,32 @@
-import json
 from strands import Agent
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from strands.types.content import ContentBlock
-import boto3
 from strands.multiagent import GraphBuilder
-from src.mortgage_processor.agents.storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT
+from strands.multiagent.graph import GraphState
+from mortgage_processor.agents.storage_agent import bedrock_model, STORAGE_AGENT_SYSTEM_PROMPT
 import os
-from src.mortgage_processor.mcp.mcp_client import get_gateway_mcp_client
+import json
+from mortgage_processor.mcp.mcp_client import get_gateway_mcp_client
+from mortgage_processor.agents.validation_agent import validation_expert, val_expert
+from mortgage_processor.agents.extraction_agent import extraction_expert
 
-import logging
 
+def only_if_validation_successful(state: GraphState):
+    """Only traverse if validation was successful."""
+    validation_node = state.results.get("validation")
+    if not validation_node:
+        return False
 
-logging.getLogger("strands").setLevel(logging.INFO)
+    result = str(validation_node.result)
+    return "1" in result
 
-logging.basicConfig(
-    format="%(levelname)s | %(name)s | %(message)s",
-    handlers=[logging.StreamHandler()]
-)
+def only_if_validation_not_successful(state: GraphState):
+    """Only traverse if validation was successful."""
+    validation_node = state.results.get("validation")
+    if not validation_node:
+        return False
 
-app = BedrockAgentCoreApp()
+    result = str(validation_node.result)
+    return "1" not in result
+    
 
 async def invoke_graph(prompt):
     gateway_mcp_client = get_gateway_mcp_client(region=os.environ.get('AWS_REGION','us-east-1'))
@@ -33,47 +41,19 @@ async def invoke_graph(prompt):
         )
 
         builder = GraphBuilder()
+        
+        # builder.add_node(extraction_expert, "extraction")
+        # builder.add_node(val_expert, "validation")
+        builder.add_node(storage_agent, "storage")
 
-        # builder.add_node(data_extraction_agent, "data_extraction_agent")
-        builder.add_node(storage_agent, "storage_agent")
-        # builder.add_node(validation_agent, "validation_agent")
+        # builder.add_edge("extraction", "validation")
+        # builder.add_edge("validation", "extraction")
+        # builder.add_edge("validation", "storage", condition=only_if_validation_successful)
 
-        # builder.add_edge("data_extraction_agent", "storage_agent")
-        # builder.add_edge("validation_agent", "storage_agent")
+        builder.set_entry_point("storage")
 
-        builder.set_entry_point("storage_agent")
-
+        builder.set_max_node_executions(20)
+        builder.reset_on_revisit()
         graph = builder.build()
         result = await graph.invoke_async(prompt)
         return result
-
-
-session = boto3.Session(region_name=os.environ.get('AWS_REGION', 'us-east-1'))
-s3_client = session.client('s3')
-
-@app.entrypoint
-async def process_mortgage(payload):
-    prompt = payload.get(
-        "prompt", "No prompt"
-    )
-
-    content_blocks = [
-        ContentBlock(text="""
-                    STORE the mortgage document jsons:
-                    """),
-        ContentBlock(text=json.dumps(prompt)),
-    ]
-
-    result = await invoke_graph(content_blocks)
-
-    response = {}
-    response["Status"] = str(result.status)
-    response["Execution order"] = str([node.node_id for node in result.execution_order])
-
-    for node in result.execution_order:
-        response[node.node_id] = str(result.results[node.node_id].result)
-
-    return json.dumps(response, indent=2)
-    
-if __name__ == '__main__':
-    app.run()

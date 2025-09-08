@@ -36,9 +36,11 @@
                   },
                   "assets": {
                     "type": "object",
+                    "description": "List of financial assets held by the borrower",
                     "properties": {
                       "accounts": {
                         "type": "array",
+                        "description": "List of the borrower's financial accounts used to determine available assets",
                         "items": {
                           "type": "object",
                           "properties": {
@@ -50,16 +52,20 @@
                                 "retirement",
                                 "stocks",
                                 "other"
-                              ]
+                              ],
+                              "description": "Type of financial account"
                             },
                             "account_number": {
-                              "type": "string"
+                              "type": "string",
+                              "description": "Account number of the financial asset"
                             },
                             "institution": {
-                              "type": "string"
+                              "type": "string",
+                              "description": "Name of the financial institution where the account is held"
                             },
                             "value": {
-                              "type": "number"
+                              "type": "number",
+                              "description": "Current monetary value of the account"
                             }
                           },
                           "required": [
@@ -75,14 +81,17 @@
                   },
                   "declarations": {
                     "type": "array",
+                    "description": "Borrower's declarations (e.g., legal or financial disclosures) in question and answer format",
                     "items": {
                       "type": "object",
                       "properties": {
                         "question": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Declaration question (e.g., regarding bankruptcy or judgments)"
                         },
                         "answer": {
-                          "type": "boolean"
+                          "type": "boolean",
+                          "description": "Borrower's answer to the declaration question; true if yes, false if no"
                         }
                       },
                       "required": ["question", "answer"]
@@ -90,23 +99,29 @@
                   },
                   "employment_history": {
                     "type": "array",
+                    "description": "History of the borrower's employment, used to verify income and employment stability",
                     "items": {
                       "type": "object",
                       "properties": {
                         "employer": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Name of the employer"
                         },
                         "address": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Address of the employer's location"
                         },
                         "position": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Borrower's job title or position"
                         },
                         "monthly_base_income": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Monthly base income earned from this employer"
                         },
                         "monthly_bonus_income": {
-                          "type": "integer"
+                          "type": "integer",
+                          "description": "Monthly bonus or additional income (optional)"
                         },
                         "start_date": {
                           "type": "string",
@@ -116,7 +131,7 @@
                         "end_date": {
                           "type": "string",
                           "format": "date",
-                          "description": "Employment end date in ISO 8601 format"
+                          "description": "Employment end date in ISO 8601 format (if applicable)"
                         }
                       },
                       "required": [
@@ -130,20 +145,25 @@
                   },
                   "liabilities": {
                     "type": "array",
+                    "description": "Borrower's outstanding debts and financial obligations",
                     "items": {
                       "type": "object",
                       "properties": {
                         "account_number": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Liability account number"
                         },
                         "institution": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Institution holding the debt"
                         },
                         "balance": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "Outstanding balance of the liability"
                         },
                         "monthly_payment": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "Monthly payment amount for this liability"
                         },
                         "type": {
                           "type": "string",
@@ -151,7 +171,8 @@
                             "Other Loan",
                             "Installment Loan",
                             "Revolving Credit"
-                          ]
+                          ],
+                          "description": "Type of liability or debt instrument"
                         }
                       },
                       "required": [
@@ -165,6 +186,7 @@
                   },
                   "loan_information": {
                     "type": "object",
+                    "description": "Summary of details specific to the mortgage loan being requested",
                     "properties": {
                       "purpose": {
                         "type": "string",
@@ -173,7 +195,8 @@
                           "Refinance",
                           "Construction",
                           "Other"
-                        ]
+                        ],
+                        "description": "Purpose of the requested loan"
                       },
                       "occupancy": {
                         "type": "string",
@@ -181,16 +204,20 @@
                           "Primary Residence",
                           "Secondary Residence",
                           "Investment Property"
-                        ]
+                        ],
+                        "description": "Intended occupancy of the property"
                       },
                       "property": {
                         "type": "object",
+                        "description": "Target property and its value for the loan",
                         "properties": {
                           "address": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Street address of the property being financed"
                           },
                           "value": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "Appraised value or purchase price of the property"
                           }
                         },
                         "required": ["address", "value"]
@@ -290,6 +317,14 @@
                       "credit_type",
                       "contact"
                     ]
+                  },
+                  "underwriter_notes": {
+                    "type": "array",
+                    "description": "Additional underwriter notes from the mortgage application",
+                    "items": {
+                      "type": "string",
+                      "description": "A single note or comment text"
+                    }
                   }
                 },
                 "required": [

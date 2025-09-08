@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from mortgage_application import MortgageApplication, ApplicationStatus
+from model.mortgage_application import MortgageApplication, ApplicationStatus
 
 logger = Logger(service="mortgage-crud-service")
 
