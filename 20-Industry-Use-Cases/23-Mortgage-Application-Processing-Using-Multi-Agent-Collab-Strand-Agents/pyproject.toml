@@ -8,7 +8,7 @@ dependencies = [
     "pydantic",
     "boto3",
     "httpx",
-    "strands-agents~=1.7",
+    "strands-agents@git+https://github.com/strands-agents/sdk-python.git@main",
     "strands-agents-tools",
     "bedrock-agentcore",
     "aws_lambda_powertools",
@@ -23,6 +23,9 @@ dependencies = [
     "pandas>=2.3.2",
     "streamlit-antd-components>=0.3.2",
 ]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [build-system]
 requires = ["hatchling"]

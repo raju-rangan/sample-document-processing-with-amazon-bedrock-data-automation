@@ -917,7 +917,7 @@ requires-dist = [
     { name = "pyyaml" },
     { name = "requests" },
     { name = "smart-open" },
-    { name = "strands-agents", specifier = "~=1.7" },
+    { name = "strands-agents", git = "https://github.com/strands-agents/sdk-python.git?rev=main" },
     { name = "strands-agents-tools" },
     { name = "streamlit", specifier = ">=1.49.1" },
     { name = "streamlit-antd-components", specifier = ">=0.3.2" },
@@ -2590,8 +2590,8 @@ wheels = [
 
 [[package]]
 name = "strands-agents"
-version = "1.7.1"
-source = { registry = "https://pypi.org/simple" }
+version = "1.7.2.dev6+g1f27488d5"
+source = { git = "https://github.com/strands-agents/sdk-python.git?rev=main#1f27488d5ec1f38db3a10778285efada6ffd3822" }
 dependencies = [
     { name = "boto3" },
     { name = "botocore" },
@@ -2603,10 +2603,6 @@ dependencies = [
     { name = "pydantic" },
     { name = "typing-extensions" },
     { name = "watchdog" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/4c/e2/b67294a3495723d7ba7720f9bddcb018ac24e3f843f55ba339efad30fe55/strands_agents-1.7.1.tar.gz", hash = "sha256:9981c4195794fd986bc64eac3cb2590252378039bb02f457e8914d27b3330a88", size = 365626, upload-time = "2025-09-05T20:42:31.253Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/1b/8850169a4944ca729fb68cdb1f6c083d9697f5bc148ff5965eb2c919ed41/strands_agents-1.7.1-py3-none-any.whl", hash = "sha256:971f3d91f96407b194ffba7ba4ee0e798884f6f3e05391e1d3a238957233b7be", size = 192506, upload-time = "2025-09-05T20:42:29.551Z" },
 ]
 
 [[package]]
