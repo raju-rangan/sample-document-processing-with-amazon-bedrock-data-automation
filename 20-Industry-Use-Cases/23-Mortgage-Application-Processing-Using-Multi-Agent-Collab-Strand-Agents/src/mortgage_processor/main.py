@@ -1,7 +1,6 @@
 import json
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from strands.types.content import ContentBlock
-from mortgage_processor.agents.main_agent import invoke_graph
+from mortgage_processor.agents.graph import invoke_graph
 import os
 
 import logging
@@ -21,14 +20,7 @@ async def process_mortgage(payload):
         "prompt", "No prompt"
     )
 
-    content_blocks = [
-        ContentBlock(text="""
-                    Validate and store the mortgage application:
-                    """),
-        ContentBlock(text=json.dumps(prompt)),
-    ]
-
-    result = await invoke_graph(content_blocks)
+    result = await invoke_graph(prompt)
 
     response = {
         "Status": str(result.status),

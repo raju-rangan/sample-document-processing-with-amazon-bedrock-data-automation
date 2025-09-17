@@ -214,14 +214,11 @@ def run_agent_demo(gateway_url: str, token: str):
 
     with MCPClient(create_streamable_http_transport) as client:
         tools = client.list_tools_sync()
-        for t in tools:
-            t: MCPAgentTool
-            print(f't: {t.mcp_tool}')
         agent = Agent(model=model, tools=tools)
         logging.info(f"Tools loaded: {agent.tool_names}")
         
         # Explicit prompt with exact JSON structure
-        prompt = """Create the most full and complex mortgage application, make up all the details you don't have"""
+        prompt = """Get the mortgage api openapi spec"""
         
         result = agent(prompt)
         print(f"Agent result: {result}")
