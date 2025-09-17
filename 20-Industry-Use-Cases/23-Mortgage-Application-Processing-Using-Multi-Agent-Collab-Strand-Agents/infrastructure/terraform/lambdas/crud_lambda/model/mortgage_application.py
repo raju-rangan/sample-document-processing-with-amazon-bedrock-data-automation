@@ -185,7 +185,8 @@ class MortgageApplication(Model):
 
     borrower_name = UnicodeAttribute()
     loan_amount = NumberAttribute()
-    personal_information = PersonalInformationAttribute()
+    borrower_personal_information = PersonalInformationAttribute()
+    co_borrower_personal_information = PersonalInformationAttribute()
     employment_history = ListAttribute(of=EmployerAttribute)
     assets = AssetsAttribute()
     liabilities = ListAttribute(of=LoanAccountAttribute)
@@ -207,8 +208,9 @@ class MortgageApplication(Model):
         employment_history: List[Dict[str, Any]],
         liabilities: List[Dict[str, Any]],
         loan_information: Dict[str, Any],
-        personal_information: Dict[str, Any],
+        borrower_personal_information: Dict[str, Any],
         declarations: List[Dict[str, bool]],
+        co_borrower_personal_information: Optional[Dict[str, Any]] = None,
         underwriter_notes: List[str] = [],
     ) -> MortgageApplication:
         """
@@ -223,7 +225,8 @@ class MortgageApplication(Model):
                 employment_history=[EmployerAttribute(**e) for e in employment_history],
                 liabilities=[LoanAccountAttribute(**l) for l in liabilities],
                 loan_information=LoanInformationAttribute(**loan_information),
-                personal_information=PersonalInformationAttribute(**personal_information),
+                borrower_personal_information=PersonalInformationAttribute(**borrower_personal_information),
+                co_borrower_personal_information=PersonalInformationAttribute(**co_borrower_personal_information) if co_borrower_personal_information else None,
                 declarations=[DeclarationAttribute(**d) for d in declarations],
                 underwriter_notes = underwriter_notes,
             )

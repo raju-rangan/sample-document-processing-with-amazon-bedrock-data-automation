@@ -432,7 +432,7 @@ module "mortgage_applications_agentcore_lambda" {
   description   = "Mortgage application agentcore"
   handler       = "main.lambda_handler"
   runtime       = "python3.13"
-  timeout       = 30
+  timeout       = 900
   memory_size   = 256
   publish       = true
 

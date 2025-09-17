@@ -1,11 +1,12 @@
 import json
 import boto3
-from boto3 import Session
 import os
 from typing import Dict, Any
 from smart_open import open
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.config import Config
+
 
 AGENT_RUNTIME_ARN = os.environ["AGENT_RUNTIME_ARN"]
 AGENT_ENDPOINT_NAME = os.environ["AGENT_ENDPOINT_NAME"]
@@ -24,7 +25,7 @@ def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, A
         metadata = json.load(f)
         results = get_bedrock_data_automation_results(job_metadata=metadata)
         
-    agentcore_response = invoke_agentcore(prompt=json.dumps(results))
+    agentcore_response = invoke_agentcore(prompt=results)
 
     if "text/event-stream" in agentcore_response.get("contentType", ""):
         content = []
@@ -63,7 +64,15 @@ def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
 def invoke_agentcore(prompt: str) -> dict:
     logger.info(f"Invoking Agentcore {AGENT_RUNTIME_ARN} with prompt: {prompt}")
 
-    client = boto3.client('bedrock-agentcore')
+    session = boto3.Session()
+
+    config = Config(
+        read_timeout=900,
+        connect_timeout=900,
+        retries={'max_attempts': 3}
+    )
+    
+    client = session.client('bedrock-agentcore', config=config)
 
     payload = json.dumps({"prompt": prompt}).encode()
 
@@ -75,10 +84,12 @@ def invoke_agentcore(prompt: str) -> dict:
     return response
 
 
-def get_bedrock_data_automation_results(job_metadata: dict) -> dict:
+def get_bedrock_data_automation_results(job_metadata: dict) -> str:
     output_metadata = job_metadata["output_metadata"][0]
     segment_metadata = output_metadata["segment_metadata"]
-    inference_results = {}
+    inference_results = []
+    logger.info(f"Found {len(segment_metadata)} segments")
+
     for segment in segment_metadata:
         custom_output_status = segment["custom_output_status"]
         if custom_output_status == "MATCH":
@@ -87,7 +98,7 @@ def get_bedrock_data_automation_results(job_metadata: dict) -> dict:
                 json_string = json.load(f)
                 document_class = json_string["document_class"]["type"]
                 inference_result = json_string["inference_result"]
-                inference_results[document_class] = inference_result
+                inference_results.append({ document_class: inference_result})
         elif custom_output_status == "NO_MATCH":
             standard_output_path = segment["standard_output_path"]
             with open(standard_output_path) as f:
@@ -96,5 +107,5 @@ def get_bedrock_data_automation_results(job_metadata: dict) -> dict:
                 for page in pages:
                     page_index = page["page_index"]
                     inference_result = page["representation"]["markdown"]
-                    inference_results[f"page-{page_index}"] = inference_result
-    return inference_results
+                    inference_results.append({f"page-{page_index}": inference_result })
+    return json.dumps(inference_results)

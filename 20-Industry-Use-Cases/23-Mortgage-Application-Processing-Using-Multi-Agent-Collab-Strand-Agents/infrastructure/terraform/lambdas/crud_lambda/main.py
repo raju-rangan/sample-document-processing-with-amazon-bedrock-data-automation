@@ -108,20 +108,20 @@ def get_application(app_id: Optional[str]) -> Dict[str, Any]:
 
 def list_applications(params: Dict[str, Any]) -> Dict[str, Any]:
     try:
+        page = int(params.get("page", 0))
         limit = min(int(params.get("limit", DEFAULT_SCAN_LIMIT)), MAX_SCAN_LIMIT)
     except ValueError:
-        return response(400, {"error": "Invalid limit parameter"})
+        return response(400, {"error": "Invalid limit or page parameters"})
 
     try:        
-        applications = list(MortgageApplication.scan(limit=limit))
+        applications = list(MortgageApplication.scan(limit=limit, segment=page))
 
         items = [app.to_simple_dict() for app in applications]
 
         response_data = {
-            "data": items,
-            "count": len(items),
-            "has_more": len(items) >= limit,
-            "query_type": "index_query"
+            "items": items,
+            "page": page,
+            "limit": limit,
         }
 
         return response(200, response_data)
