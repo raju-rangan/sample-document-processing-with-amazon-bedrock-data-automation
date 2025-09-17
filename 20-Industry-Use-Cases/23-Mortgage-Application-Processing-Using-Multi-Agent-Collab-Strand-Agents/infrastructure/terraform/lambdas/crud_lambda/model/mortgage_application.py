@@ -186,7 +186,7 @@ class MortgageApplication(Model):
     borrower_name = UnicodeAttribute()
     loan_amount = NumberAttribute()
     borrower_personal_information = PersonalInformationAttribute()
-    co_borrower_personal_information = PersonalInformationAttribute()
+    co_borrower_personal_information = PersonalInformationAttribute(null=True)
     employment_history = ListAttribute(of=EmployerAttribute)
     assets = AssetsAttribute()
     liabilities = ListAttribute(of=LoanAccountAttribute)
