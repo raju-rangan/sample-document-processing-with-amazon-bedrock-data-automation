@@ -1,0 +1,102 @@
+
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Blueprint for extracting key information from mortgage underwriter's notes",
+  "class": "Mortgage Underwriter Notes",
+  "type": "object",
+  "definitions": {
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "inferenceType": "explicit",
+          "instruction": "Numerical value associated with the metric"
+        },
+        "assessment": {
+          "type": "string",
+          "inferenceType": "explicit",
+          "instruction": "Underwriter's qualitative assessment (e.g., strong, high, robust)"
+        },
+        "impact": {
+          "enum": [
+            "POSITIVE",
+            "NEGATIVE",
+            "NEUTRAL"
+          ],
+          "instruction": "Impact on application (POSITIVE: strengthens application, NEGATIVE: weakens application, NEUTRAL: no significant impact)",
+          "inferenceType": "explicit"
+        },
+        "notes": {
+          "type": "string",
+          "inferenceType": "explicit",
+          "instruction": "Additional notes or context about this metric"
+        }
+      }
+    }
+  },
+  "properties": {
+    "ltv_ratio": {
+      "$ref": "#/definitions/evaluation",
+      "instruction": "Loan-to-Value ratio assessment including percentage and qualitative evaluation"
+    },
+    "dti_ratio": {
+      "$ref": "#/definitions/evaluation",
+      "instruction": "Debt-to-Income ratio assessment including percentage and qualitative evaluation"
+    },
+    "liquid_assets": {
+      "$ref": "#/definitions/evaluation",
+      "instruction": "Assessment of applicant's liquid assets including dollar amount and qualitative evaluation"
+    },
+    "payment_shock_present": {
+      "type": "boolean",
+      "inferenceType": "explicit",
+      "instruction": "Indicates if there is payment shock when comparing current rent to projected mortgage payment"
+    },
+    "payment_shock_notes": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Details about payment shock assessment or comparison between current housing costs and projected mortgage"
+    },
+    "credit_history_clean": {
+      "type": "boolean",
+      "inferenceType": "explicit",
+      "instruction": "Indicates if the credit history is clean with no derogatory events"
+    },
+    "credit_history_notes": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Additional notes about credit history quality and impact on application"
+    },
+    "asset_diversity": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Assessment of the applicant's asset diversity and what it indicates about financial responsibility"
+    },
+    "employment_industry": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Industry where the applicant works (e.g., tech, healthcare, education)"
+    },
+    "employment_years": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Number of years the applicant has been employed in their current industry"
+    },
+    "income_stability_notes": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Assessment of income stability and its impact on creditworthiness"
+    },
+    "primary_concerns": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Primary issues or concerns identified by the underwriter"
+    },
+    "required_actions": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Actions or strategies required to address concerns or strengthen the application"
+    }
+  }
+}

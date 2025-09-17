@@ -1,0 +1,202 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Comprehensive extraction of mortgage loan application including personal details, employment, financial status, and property information for loan underwriting and approval.",
+  "class": "Complete Mortgage Loan Application",
+  "type": "object",
+  "definitions": {
+    "contact_information_details": {
+      "type": "object",
+      "properties": {
+        "home_phone": {
+          "type": "string",
+          "inferenceType": "explicit",
+          "instruction": "Home phone number from Contact Information section on page 1"
+        },
+        "cell_phone": {
+          "type": "string",
+          "inferenceType": "explicit",
+          "instruction": "Cell phone number from Contact Information section on page 1"
+        },
+        "work_phone": {
+          "type": "string",
+          "inferenceType": "explicit",
+          "instruction": "Work phone number from Contact Information section on page 1"
+        },
+        "email_address": {
+          "type": "string",
+          "inferenceType": "explicit",
+          "instruction": "Email address from Contact Information section on page 1"
+        }
+      }
+    }
+  },
+  "properties": {
+    "applicant_name": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Full name of applicant (first, middle, last, and suffix) from Personal Information section on page 1"
+    },
+    "ssn": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "9-digit Social Security Number from Personal Information section on page 1"
+    },
+    "alternate_names": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Any other names the applicant is known by from Personal Information section on page 1"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Date of birth in mm/dd/yyyy format from Personal Information section on page 1"
+    },
+    "citizenship_status": {
+      "enum": [
+        "USC",
+        "PRA",
+        "NPRA"
+      ],
+      "instruction": "Citizenship status (USC: U.S. Citizen, PRA: Permanent Resident Alien, NPRA: Non-Permanent Resident Alien) from Personal Information section on page 1",
+      "inferenceType": "explicit"
+    },
+    "credit_application": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Type of credit (Individual or Joint) and total number of borrowers if joint application from Personal Information section on page 1"
+    },
+    "marital_status": {
+      "enum": [
+        "M",
+        "S",
+        "U"
+      ],
+      "instruction": "Marital status (M: Married, S: Separated, U: Unmarried) from Personal Information section on page 1",
+      "inferenceType": "explicit"
+    },
+    "dependents": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Number and ages of dependents (e.g., '2 dependents: ages 4, 7') from Personal Information section on page 1"
+    },
+    "contact_information": {
+      "$ref": "#/definitions/contact_information_details",
+      "instruction": "Contact information including home phone, cell phone, work phone and email address from Contact Information section on page 1"
+    },
+    "current_address": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Complete current address including street, unit, city, state, zip and country from Current Address section on page 1"
+    },
+    "current_address_duration": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Time at current address (years and months) from Current Address section on page 1"
+    },
+    "housing": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Housing status (Own, Rent, or No primary housing expense) and monthly payment amount from Housing section on page 1"
+    },
+    "employment_status": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "If employment section applies and whether applicant is business owner/self-employed from Current Employment section on page 2"
+    },
+    "employer_name": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Name of employer or business from Current Employment section on page 2"
+    },
+    "employer_phone": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Phone number of the employer from Current Employment section on page 2"
+    },
+    "employer_address": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Complete employer address including street, unit, city, state, zip and country from Current Employment section on page 2"
+    },
+    "employment_details": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Position title, start date, and duration in this line of work from Current Employment section on page 2"
+    },
+    "income_base": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Base monthly income in dollars from Monthly Income section on page 2"
+    },
+    "income_overtime": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Overtime monthly income in dollars from Monthly Income section on page 2"
+    },
+    "income_bonus": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Bonus monthly income in dollars from Monthly Income section on page 2"
+    },
+    "income_commission": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Commission monthly income in dollars from Monthly Income section on page 2"
+    },
+    "income_military": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Military entitlements monthly income in dollars from Monthly Income section on page 2"
+    },
+    "income_other": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Other monthly income in dollars from Monthly Income section on page 2"
+    },
+    "income_total": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Total gross monthly income in dollars from Monthly Income section on page 2"
+    },
+    "total_assets_value": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Total value of all assets from Financial Information section on page 3"
+    },
+    "total_liabilities_amount": {
+      "type": "number",
+      "inferenceType": "explicit",
+      "instruction": "Total amount of all liabilities from Financial Information section on page 3"
+    },
+    "loan_details": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Loan amount and purpose (Purchase, Refinance, or Other with description) from Loan and Property Information section on page 4"
+    },
+    "property_address": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Complete property address including street, unit, city, state, zip and county from Loan and Property Information section on page 4"
+    },
+    "property_characteristics": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Number of units and estimated property value in dollars from Loan and Property Information section on page 4"
+    },
+    "property_occupancy": {
+      "enum": [
+        "PRIMARY_RESIDENCE",
+        "SECOND_HOME",
+        "INVESTMENT_PROPERTY",
+        "FHA_SECONDARY_RESIDENCE"
+      ],
+      "instruction": "How the property will be occupied from Loan and Property Information section on page 4",
+      "inferenceType": "explicit"
+    },
+    "property_usage": {
+      "type": "string",
+      "inferenceType": "explicit",
+      "instruction": "Whether property is mixed-use and/or a manufactured home from Loan and Property Information section on page 4"
+    }
+  }
+}
