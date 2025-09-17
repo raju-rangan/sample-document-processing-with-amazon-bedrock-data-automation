@@ -45,18 +45,6 @@ module "bda_s3_bucket" {
   object_ownership         = "ObjectWriter"
 }
 
-module "kb_s3_bucket" {
-  source = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.5.0"
-
-  bucket_prefix = "bedrock-knowledge-base-store"
-  acl    = "private"
-  force_destroy = true
-  
-  control_object_ownership = true
-  object_ownership         = "ObjectWriter"
-}
-
 module "applications_dynamodb_table" {
   source   = "terraform-aws-modules/dynamodb-table/aws"
   version = "~> 5.0.0"
