@@ -7,47 +7,71 @@ from strands import Agent, tool
 
 VALIDATION_AGENT_SYSTEM_PROMPT = """
 You are a Mortgage Application Validation Agent.
-Your goal is to validate raw mortgage application data (usually in free-text JSON format) against a target DynamoDB schema. 
-You will act as a quality gate between raw input and storage.
+Your goal is to validate raw mortgage application data against a target schema. 
 
 Instructions:
 1. Input:
-    - Raw mortgage application document (JSON, possibly malformed or incomplete).
-    - Target DynamoDB schema (JSON schema-like definition).
+    - JSON mortgage application document.
 
 2. Process:
-    - Parse the raw input into structured JSON if possible.
-    - Compare it against the provided schema field-by-field.
-    - Evaluate:
-      - Completeness: Are all required fields present?
-      - Correctness: Do field types/values match expected formats?
-      - Consistency: Are there duplicate or redundant entries?
-      - Clarity: Is the data unambiguous and ready for storage?
+    - Evaluate against this perfect mortgage application:
+
+{
+  "assets": {
+    "accounts": []
+  },
+  "borrower_name": "John Doe",
+  "declarations": [],
+  "employment_history": [
+    {
+      "address": "456 Tech Avenue, San Francisco, CA, 94102, USA",
+      "employer": "Acme Corp",
+      "monthly_base_income": 7500,
+      "position": "Senior Software Engineer",
+      "start_date": "2019-08-15"
+    }
+  ],
+  "liabilities": [],
+  "loan_amount": 350000,
+  "loan_information": {
+    "occupancy": "Primary Residence",
+    "property": {
+      "address": "456 Maple Lane, CityVille, NY, 12345",
+      "value": 550000
+    },
+    "purpose": "Purchase"
+  },
+  "personal_information": {
+    "citizenship": "U.S. Citizen",
+    "contact": {
+      "address": "123 Main St, Reston, VA 20170, USA",
+      "cell_phone": "555-987-4567",
+      "email": "john.doe@example.com",
+      "housing_payment": 2200,
+      "housing_situation": "Renting"
+    },
+    "credit_type": "Individual application",
+    "date_of_birth": "1970-09-21",
+    "dependents": 2,
+    "marital_status": "Single"
+  },
+  "ssn": "123-45-6789",
+  "status": "pending",
+  "underwriter_notes": [
+    "No payment shock expected based on current rent vs projected mortgage",
+    "supports creditworthiness",
+    "Diverse asset mix shows financial responsibility",
+    "strengthens application",
+    "tech"
+  ],
+}
 
 3. Output:
-    You must return ONLY valid JSON.
-    Do NOT use markdown, code fences, backticks, or any additional text.
-    Do not include explanations, notes, or comments.
-    Output must be parseable JSON starting with '{' or '['.
     - Score: A number between 0.0 and 1.0, where:
       - 0.0 = completely invalid, unusable
       - 1.0 = perfectly aligned with schema
-    - Improvement Notes:
+    - Feedback:
       - Provide concise, actionable bullet points.
-      - Always provide at least one note unless score == 1.0
-
-4. Feedback Loop:
-    - Do not alter the input directly.
-    - If score < 1.0, suggest only the changes required to bring the document closer to 1.0.
-
-Output Example (must match this format exactly):
-{
-  "score": 0.85,
-  "improvement_notes": [
-    "Missing field: 'employer_name'",
-    "Field 'housing' should be an object with { type, amount } instead of free text"
-  ]
-}
 """.strip()
 
 
@@ -58,7 +82,7 @@ session = boto3.Session(
 bedrock_model = BedrockModel(
     model_id="us.amazon.nova-pro-v1:0",
     boto_session=session,
-    temperature=0.3
+    temperature=0.0
 )
 
 val_expert = Agent(
