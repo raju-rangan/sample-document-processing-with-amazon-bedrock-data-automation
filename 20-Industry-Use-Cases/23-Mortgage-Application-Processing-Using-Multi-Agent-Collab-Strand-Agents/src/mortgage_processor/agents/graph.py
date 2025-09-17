@@ -107,8 +107,6 @@ async def invoke_graph(prompt: str):
 
         builder.set_entry_point("extraction")
 
-        builder.set_max_node_executions(8)
-
         graph = builder.build()
         result = await graph.invoke_async(prompt)
         return result
