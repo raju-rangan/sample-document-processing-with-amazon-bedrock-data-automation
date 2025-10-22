@@ -14,9 +14,14 @@ ENV UV_COMPILE_BYTECODE=1 \
     DOCKER_CONTAINER=1 \
     PATH="/app/.venv/bin:$PATH"
 
+RUN useradd -m -u 1000 bedrock_agentcore
+
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+        git \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 
 COPY uv.lock pyproject.toml ./
 
@@ -26,9 +31,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY --chown=bedrock_agentcore:bedrock_agentcore src src
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
-
-RUN useradd -m -u 1000 bedrock_agentcore && \
+    uv sync --locked && \
     chown -R bedrock_agentcore:bedrock_agentcore /app
 
 USER bedrock_agentcore

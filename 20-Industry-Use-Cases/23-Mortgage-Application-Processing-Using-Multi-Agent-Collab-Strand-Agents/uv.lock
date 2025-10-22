@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.13"
 
 [[package]]
@@ -904,24 +904,24 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-lambda-powertools" },
+    { name = "aws-lambda-powertools", specifier = ">=3.0.0" },
     { name = "aws-opentelemetry-distro" },
-    { name = "bedrock-agentcore" },
-    { name = "bedrock-agentcore-starter-toolkit" },
-    { name = "boto3" },
-    { name = "fastmcp" },
-    { name = "httpx" },
+    { name = "bedrock-agentcore", specifier = ">=0.1.2" },
+    { name = "bedrock-agentcore-starter-toolkit", specifier = ">=0.1.1" },
+    { name = "boto3", specifier = ">=1.39.14" },
+    { name = "fastmcp", specifier = ">=2.10.5" },
+    { name = "httpx", specifier = ">=0.27.0" },
     { name = "pandas", specifier = ">=2.3.2" },
-    { name = "pydantic" },
-    { name = "pynamodb" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "smart-open" },
+    { name = "pydantic", specifier = ">=2.11.7" },
+    { name = "pynamodb", specifier = ">=6.0.0" },
+    { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "requests", specifier = ">=2.32.0" },
+    { name = "smart-open", specifier = ">=7.0.0" },
     { name = "strands-agents", git = "https://github.com/strands-agents/sdk-python.git?rev=main" },
     { name = "strands-agents-tools" },
     { name = "streamlit", specifier = ">=1.49.1" },
     { name = "streamlit-antd-components", specifier = ">=0.3.2" },
-    { name = "uv" },
+    { name = "uv", specifier = ">=0.8.3" },
 ]
 
 [[package]]
