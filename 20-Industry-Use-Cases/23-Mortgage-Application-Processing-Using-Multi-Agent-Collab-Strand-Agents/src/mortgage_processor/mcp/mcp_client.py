@@ -18,7 +18,7 @@ def get_gateway_mcp_client(region: Optional[str],
     logging.info("Requesting the access token from Amazon Cognito authorizer")
     token_response = get_token(user_pool_id, client_id, client_secret, scopeString, region)
     token = token_response["access_token"]
-    logging.info("Token response:", token)
+    logging.info("Token response: %s", token)
 
     def create_streamable_http_transport():
         return streamablehttp_client(gateway_url,headers={"Authorization": f"Bearer {token}"})
