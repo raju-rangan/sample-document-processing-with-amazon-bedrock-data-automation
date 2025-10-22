@@ -1,6 +1,3 @@
-import boto3
-from strands.models import BedrockModel
-import os
 
 
 

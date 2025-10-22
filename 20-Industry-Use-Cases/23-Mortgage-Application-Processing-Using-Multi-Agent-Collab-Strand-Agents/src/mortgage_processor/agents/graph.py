@@ -8,58 +8,6 @@ import boto3
 from mortgage_processor.mcp.mcp_client import get_gateway_mcp_client
 
 
-# class ValidationReport(BaseModel):
-#         score: float
-#         feedback: str
-
-# class ValidationNode(MultiAgentBase):
-
-#     def __init__(self, name: str):
-#         super().__init__()
-#         self.name = name
-
-#     async def invoke_async(self, task, **kwargs):
-#         result = val_expert.structured_output(
-#             ValidationReport,
-#             task
-#         )
-
-#         agent_result = AgentResult(
-#             stop_reason="end_turn",
-#             message=Message(role="assistant", content=[ContentBlock(text=result.model_dump_json())]),
-#             metrics=EventLoopMetrics(),
-#             state=None
-#         )
-
-#         return MultiAgentResult(
-#             status=Status.COMPLETED,
-#             results={self.name: NodeResult(result=agent_result)},
-#         )
-    
-# def only_if_validation_passed(state: GraphState) -> bool:
-#     """Only traverse if validation was successful."""
-#     validation_node = state.results.get("validation")
-#     if not validation_node:
-#         return False
-    
-#     if validation_node.result is Exception:
-#         print(f"exception: {validation_node.result}")
-#         return False
-
-#     if type(validation_node.result) == MultiAgentResult:
-#         validation_result = validation_node.result.results['validation']
-#         agent_result = validation_result.result
-#         if type(agent_result) == AgentResult:
-#             message_content = agent_result.message['content']
-#             json_string = message_content[0].get('text')
-#             if json_string is not None:
-#                 data = json.loads(json_string)
-#                 score = data.get('score')
-#                 return float(score) >= 0.9
-#     else:
-#         print(f"Cannot process type: {type(validation_node.result)}")
-#         return False
-
 async def invoke_graph(prompt: str):
     REGION = os.environ.get('AWS_REGION','us-east-1')
 

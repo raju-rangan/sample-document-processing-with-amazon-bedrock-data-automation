@@ -1,5 +1,3 @@
-import boto3
-import os
 
 STORAGE_AGENT_SYSTEM_PROMPT = """
 You are a mortgage-document ingestion agent.

@@ -15,6 +15,10 @@ AGENT_ENDPOINT_NAME = os.environ["AGENT_ENDPOINT_NAME"]
 
 logger = Logger(service="mortgage-preprocess-service")
 
+region = os.getenv("AWS_REGION") or Session().region_name
+boto_session = Session(region_name=region)
+bda_client = boto_session.client("bedrock-data-automation-runtime")
+
 
 @logger.inject_lambda_context(log_event=True)
 def lambda_handler(event: Dict[str, Any], context: LambdaContext) -> Dict[str, Any]:
@@ -87,10 +91,7 @@ def trigger_bedrock_data_automation(
     region: Optional[str] = None,
 ) -> str:
     
-    region = region or os.getenv("AWS_REGION") or Session().region_name
-    boto_session = Session(region_name=region)
-    client = boto_session.client("bedrock-data-automation-runtime")
-    logger.info(f"Invoking Bedrock Data Automation project: {project_arn} in region {region}")
+    logger.info(f"Invoking Bedrock Data Automation project: {project_arn} in region {region or 'default'}")
 
     payload: Dict[str, Any] = {
         "dataAutomationConfiguration": {
@@ -113,7 +114,7 @@ def trigger_bedrock_data_automation(
         payload["dataAutomationProfileArn"] = profile_arn
 
     try:
-        response = client.invoke_data_automation_async(**payload)
+        response = bda_client.invoke_data_automation_async(**payload)
         invocation_arn = response.get("invocationArn")
         if not invocation_arn:
             raise RuntimeError("Invocation ARN not returned in response.")

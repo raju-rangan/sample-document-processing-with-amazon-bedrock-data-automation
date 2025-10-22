@@ -18,6 +18,11 @@ import time
 REGION = "us-east-1"
 GATEWAY_NAME = "TestGWforLambda"
 LAMBDA_FUNCTION_NAME = "mortgage-applications-crud"
+
+acps_client = boto3.client(service_name="bedrock-agentcore-control", region_name=REGION)
+lambda_client = boto3.client("lambda", region_name=REGION)
+cognito_client = boto3.client("cognito-idp", region_name=REGION)
+gateway_client = boto3.client("bedrock-agentcore-control", region_name=REGION)
 TARGET_NAME = "MortgageCRUD"
 
 USER_POOL_NAME = "sample-agentcore-gateway-pool"
@@ -109,16 +114,14 @@ def upload_api_spec_to_s3(bucket_name: str, api_file_path: str) -> str:
     return s3_uri
 
 def create_openapi_cred_provider(cred_provider_name: str, api_key: str) -> str:
-    acps = boto3.client(service_name="bedrock-agentcore-control", region_name=REGION)
-    
     try:
-        response=acps.create_api_key_credential_provider(
+        response=acps_client.create_api_key_credential_provider(
             name=cred_provider_name,
             apiKey=api_key,
         )
-    except acps.exceptions.ValidationException as e:
+    except acps_client.exceptions.ValidationException as e:
         logging.warning(f'{cred_provider_name} already exists')
-        providers = acps.list_api_key_credential_providers(
+        providers = acps_client.list_api_key_credential_providers(
             maxResults=10
         )['credentialProviders']
         for provider in providers:
@@ -179,8 +182,7 @@ def create_openapi_target(client, gateway_id: str, openapi_s3_uri: str, cred_pro
         raise
 
 def get_lambda_arn(region: str, function_name: str) -> str:
-    client = boto3.client("lambda", region_name=region)
-    fn = client.get_function(FunctionName=function_name)
+    fn = lambda_client.get_function(FunctionName=function_name)
     return fn["Configuration"]["FunctionArn"]
 
 
@@ -236,11 +238,9 @@ def main():
     role_arn = create_gateway_role("sample-lambdagateway")
 
     # 2) Cognito setup
-    cognito = boto3.client("cognito-idp", region_name=REGION)
-    user_pool_id, client_id, client_secret, scope_string, discovery_url = create_cognito(cognito)
+    user_pool_id, client_id, client_secret, scope_string, discovery_url = create_cognito(cognito_client)
 
     # 3) Gateway
-    gateway_client = boto3.client("bedrock-agentcore-control", region_name=REGION)
     auth_config = {
         "customJWTAuthorizer": {
             "allowedClients": [client_id],

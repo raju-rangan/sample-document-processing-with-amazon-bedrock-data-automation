@@ -11,10 +11,13 @@ from botocore import exceptions
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 
+boto_session = Session()
+cognito_client = boto3.client('cognito-idp', region_name=REGION)
+iam_client = boto3.client('iam')
+sts_client = boto3.client("sts")
+region = REGION
+
 def reauthenticate_user(client_id):
-    boto_session = Session()
-    region = boto_session.region_name
-    cognito_client = boto3.client('cognito-idp', region_name=region)
     auth_response = cognito_client.initiate_auth(
         ClientId=client_id,
         AuthFlow='USER_PASSWORD_AUTH',
@@ -27,12 +30,6 @@ def reauthenticate_user(client_id):
     return bearer_token
 
 def setup_cognito_user_pool():
-    boto_session = Session()
-    region = boto_session.region_name
-    
-    # Initialize Cognito client
-    cognito_client = boto3.client('cognito-idp', region_name=region)
-    
     try:
         # Create User Pool
         user_pool_response = cognito_client.create_user_pool(
@@ -191,11 +188,8 @@ def get_token(user_pool_id: str, client_id: str, client_secret: str, scope_strin
         return {"error": str(err)}
     
 def create_agentcore_role(agent_name):
-    iam_client = boto3.client('iam')
     agentcore_role_name = f'agentcore-{agent_name}-role'
-    boto_session = Session()
-    region = boto_session.region_name
-    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    account_id = sts_client.get_caller_identity()["Account"]
     role_policy = {
         "Version": "2012-10-17",
         "Statement": [
@@ -361,11 +355,8 @@ def create_agentcore_role(agent_name):
     return agentcore_iam_role
 
 def create_agentcore_gateway_role(gateway_name):
-    iam_client = boto3.client('iam')
     agentcore_gateway_role_name = f'agentcore-{gateway_name}-role'
-    boto_session = Session()
-    region = boto_session.region_name
-    account_id = boto3.client("sts").get_caller_identity()["Account"]
+    account_id = sts_client.get_caller_identity()["Account"]
     role_policy = {
         "Version": "2012-10-17",
         "Statement": [{
