@@ -1,0 +1,178 @@
+[
+  {
+    "Complete Mortgage Loan Application": {
+      "housing": "Rent, $2,200",
+      "date_of_birth": "09/21/1970",
+      "contact_information": {
+        "home_phone": "555-123-4567",
+        "email_address": "john.doe@example.com",
+        "work_phone": "",
+        "cell_phone": "555-987-4567"
+      },
+      "employer_name": "Acme Corp",
+      "property_characteristics": "1, $550,000",
+      "income_commission": "",
+      "property_occupancy": "PRIMARY_RESIDENCE",
+      "loan_details": "350000 for Purchase",
+      "ssn": "123-45-6789",
+      "income_bonus": 1000,
+      "current_address_duration": "1 years 8 months",
+      "income_base": 7500,
+      "employment_status": "Acme Corp",
+      "employment_details": "Senior Software Engineer, 08/15/2019, 10 years 3 months",
+      "income_other": "",
+      "income_overtime": "",
+      "total_assets_value": "",
+      "citizenship_status": "USC",
+      "employer_phone": "555-456-7890",
+      "total_liabilities_amount": "",
+      "applicant_name": "John Doe",
+      "alternate_names": "",
+      "current_address": "123 Main St, Reston, VA 20170, USA",
+      "property_usage": "",
+      "employer_address": "456 Tech Avenue, San Francisco, CA, 94102, USA",
+      "marital_status": "",
+      "property_address": "456 Maple Lane, CityVille, NY, 12345",
+      "credit_application": "I am applying for individual credit.",
+      "income_total": 8500,
+      "income_military": "",
+      "dependents": "2"
+    }
+  },
+  {
+    "US-drivers-licenses": {
+      "NAME_DETAILS": {
+        "SUFFIX": "",
+        "MIDDLE_NAME": "",
+        "LAST_NAME": "DOE",
+        "FIRST_NAME": "JOHN"
+      },
+      "STATE_NAME": "",
+      "ID_NUMBER": "6383736743891101",
+      "EXPIRATION_DATE": "2034-09-21",
+      "ENDORSEMENTS": [""],
+      "RESTRICTIONS": [""],
+      "PERSONAL_DETAILS": {
+        "SEX": "M",
+        "HAIR_COLOR": "BLK",
+        "HEIGHT": "5' 6\"",
+        "WEIGHT": "143 LBS",
+        "EYE_COLOR": "GRN"
+      },
+      "ADDRESS_DETAILS": {
+        "CITY": "RESTON",
+        "ZIP_CODE": "20170",
+        "STATE": "VA",
+        "STREET_ADDRESS": "123 MAIN ST"
+      },
+      "CLASS": "C",
+      "DATE_OF_BIRTH": "1970-09-21",
+      "COUNTY": "",
+      "DATE_OF_ISSUE": ""
+    }
+  },
+  {
+    "W2": {
+      "employer_info": {
+        "employer_address": "456 Tech Avenue, San Francisco, CA",
+        "control_number": "Text",
+        "employer_name": "Acme Corp",
+        "ein": "78-90123456",
+        "employer_zip_code": 94102
+      },
+      "filing_info": {
+        "omb_number": "",
+        "verification_code": ""
+      },
+      "codes": [
+        { "amount": "", "code": "" }
+      ],
+      "other": "",
+      "federal_tax_info": {
+        "federal_income_tax": 35140.16,
+        "allocated_tips": "",
+        "social_security_tax": 9903.136,
+        "medicare_tax": 2316.056
+      },
+      "state_taxes_table": [
+        {
+          "state_name": "TN",
+          "local_wages_tips": "",
+          "employer_state_id_number": 7890123456,
+          "state_wages_and_tips": 159728,
+          "state_income_tax": 10110.7824,
+          "local_income_tax": "",
+          "locality_name": ""
+        }
+      ],
+      "employee_general_info": {
+        "employee_name_suffix": "",
+        "employee_address": "126 Main St, Nashvile, TN",
+        "employee_last_name": "DOE",
+        "employee_zip_code": 37210,
+        "first_name": "JOHN",
+        "ssn": "123-45-6789"
+      },
+      "federal_wage_info": {
+        "social_security_tips": "",
+        "wages_tips_other_compensation": 159728,
+        "medicare_wages_tips": 159728,
+        "social_security_wages": 159728
+      },
+      "nonqualified_plans_incom": 0
+    }
+  },
+  {
+    "Mortgage Underwriter Notes": {
+      "payment_shock_notes": "No payment shock expected based on current rent vs projected mortgage",
+      "income_stability_notes": "supports creditworthiness",
+      "dti_ratio": {
+        "assessment": "High",
+        "notes": "Primary Concern and need mitigation",
+        "impact": "NEGATIVE",
+        "value": 57.1
+      },
+      "liquid_assets": {
+        "assessment": "Robust",
+        "notes": "provide good reserve and compensating factor",
+        "impact": "",
+        "value": 182500
+      },
+      "ltv_ratio": {
+        "assessment": "Strong",
+        "notes": "offsets some risks",
+        "impact": "",
+        "value": 63.6
+      },
+      "asset_diversity": "Diverse asset mix shows financial responsibility",
+      "payment_shock_present": false,
+      "credit_history_clean": true,
+      "employment_years": 10,
+      "primary_concerns": "High back-end DTI",
+      "required_actions": "DTI reduction Strategies",
+      "credit_history_notes": "strengthens application",
+      "employment_industry": "tech"
+    }
+  },
+  {
+    "Bank-Statement": {
+      "account_holder_address": "400 KOZEY LIGHT, WEBERBURGH, HI 29922",
+      "account_number": "003525801543, 352580154336",
+      "account_type": "CHECKING",
+      "account_summary": [
+        { "summary_desc": "Your previous balance as of 04/04/2022", "summary_amount": 41982.42 },
+        { "summary_desc": "Checks", "summary_amount": 1177.33 },
+        { "summary_desc": "Other withdrawals, debits and service charges", "summary_amount": 567.18 },
+        { "summary_desc": "Deposits, credits and interest", "summary_amount": 3124.75 },
+        { "summary_desc": "Your new balance as of 06/17/2020", "summary_amount": 5657.47 },
+        { "summary_desc": "Average Posted Balance in Statement Cycle", "summary_amount": 65360.07 }
+      ],
+      "statement_end_date": "04/04/2022",
+      "statement_start_date": "04/04/2022",
+      "account_holder_name": "ALEJANDRO ROSALEZ",
+      "bank_name": "Example Inc. Credit Union",
+      "branch_transit_number": "",
+      "transaction_details": []
+    }
+  }
+]

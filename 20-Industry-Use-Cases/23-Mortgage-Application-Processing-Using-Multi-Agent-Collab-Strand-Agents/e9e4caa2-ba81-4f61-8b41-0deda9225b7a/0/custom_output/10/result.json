@@ -1,0 +1,473 @@
+{
+    "matched_blueprint": {
+        "arn": "arn:aws:bedrock:us-east-1:aws:blueprint/bedrock-data-automation-public-bank-statement",
+        "name": "Bank-Statement",
+        "confidence": 0.9988713
+    },
+    "document_class": {
+        "type": "Bank-Statement"
+    },
+    "split_document": {
+        "page_indices": [
+            19
+        ]
+    },
+    "inference_result": {
+        "account_holder_address": "100 Main Street, Anytown, USA 555-0100",
+        "account_number": "333 008755555",
+        "account_type": "",
+        "account_summary": [
+            {
+                "summary_desc": "Your opening account balance as at 1 MAY 2021",
+                "summary_amount": 50000
+            },
+            {
+                "summary_desc": "Your closing account balance as at 31 MAY 2021",
+                "summary_amount": 123084.85
+            }
+        ],
+        "statement_end_date": "05/31/2021",
+        "statement_start_date": "05/01/2021",
+        "account_holder_name": "Jane Doe",
+        "branch_transit_number": "",
+        "bank_name": "",
+        "transaction_details": [
+            {
+                "date": "",
+                "balance": "",
+                "description": "",
+                "deposits": "",
+                "withdrawals": ""
+            }
+        ]
+    },
+    "explainability_info": [
+        {
+            "account_holder_address": {
+                "success": true,
+                "confidence": 0.734375,
+                "geometry": [
+                    {
+                        "boundingBox": {
+                            "top": 0.21148814785175366,
+                            "left": 0.08078035748989233,
+                            "width": 0.20961558153223686,
+                            "height": 0.025033950290525492
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.08078041206231391,
+                                "y": 0.21148999181423445
+                            },
+                            {
+                                "x": 0.2903959390221292,
+                                "y": 0.21148814785175366
+                            },
+                            {
+                                "x": 0.29039588541745215,
+                                "y": 0.23652028613348774
+                            },
+                            {
+                                "x": 0.08078035748989233,
+                                "y": 0.23652209814227915
+                            }
+                        ],
+                        "page": 20
+                    }
+                ],
+                "type": "string",
+                "value": "100 Main Street, Anytown, USA 555-0100"
+            },
+            "account_number": {
+                "success": true,
+                "confidence": 0.9375,
+                "geometry": [
+                    {
+                        "boundingBox": {
+                            "top": 0.2125825103998137,
+                            "left": 0.6867923664997035,
+                            "width": 0.1279805560131435,
+                            "height": 0.011235087295854096
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.6867923897351351,
+                                "y": 0.21258363537260197
+                            },
+                            {
+                                "x": 0.814772922512847,
+                                "y": 0.2125825103998137
+                            },
+                            {
+                                "x": 0.8147728995425817,
+                                "y": 0.2238164814782684
+                            },
+                            {
+                                "x": 0.6867923664997035,
+                                "y": 0.2238175976956678
+                            }
+                        ],
+                        "page": 20
+                    }
+                ],
+                "type": "string",
+                "value": "333 008755555"
+            },
+            "account_type": {
+                "success": true,
+                "confidence": 0.92578125,
+                "type": "string",
+                "value": ""
+            },
+            "account_summary": [
+                {
+                    "summary_desc": {
+                        "success": true,
+                        "confidence": 0.875,
+                        "geometry": [
+                            {
+                                "boundingBox": {
+                                    "top": 0.3506895197225277,
+                                    "left": 0.10288340844712401,
+                                    "width": 0.40659248110174134,
+                                    "height": 0.014411959340351554
+                                },
+                                "vertices": [
+                                    {
+                                        "x": 0.10288343980080537,
+                                        "y": 0.350692751793644
+                                    },
+                                    {
+                                        "x": 0.5094758895488654,
+                                        "y": 0.3506895197225277
+                                    },
+                                    {
+                                        "x": 0.5094758592756856,
+                                        "y": 0.3650982826684935
+                                    },
+                                    {
+                                        "x": 0.10288340844712401,
+                                        "y": 0.36510147906287926
+                                    }
+                                ],
+                                "page": 20
+                            }
+                        ],
+                        "type": "string",
+                        "value": "Your opening account balance as at 1 MAY 2021"
+                    },
+                    "summary_amount": {
+                        "success": true,
+                        "confidence": 0.9140625,
+                        "geometry": [
+                            {
+                                "boundingBox": {
+                                    "top": 0.34971168685942466,
+                                    "left": 0.5378073510431693,
+                                    "width": 0.0932986299259666,
+                                    "height": 0.014897940355535488
+                                },
+                                "vertices": [
+                                    {
+                                        "x": 0.5378073822647166,
+                                        "y": 0.34971242906054856
+                                    },
+                                    {
+                                        "x": 0.631105980969136,
+                                        "y": 0.34971168685942466
+                                    },
+                                    {
+                                        "x": 0.631105950003931,
+                                        "y": 0.3646088934778952
+                                    },
+                                    {
+                                        "x": 0.5378073510431693,
+                                        "y": 0.36460962721496015
+                                    }
+                                ],
+                                "page": 20
+                            }
+                        ],
+                        "type": "number",
+                        "value": 50000
+                    }
+                },
+                {
+                    "summary_desc": {
+                        "success": true,
+                        "confidence": 0.84765625,
+                        "geometry": [
+                            {
+                                "boundingBox": {
+                                    "top": 0.3699826129338054,
+                                    "left": 0.10288336487082086,
+                                    "width": 0.4061040102497182,
+                                    "height": 0.015144555003335947
+                                },
+                                "vertices": [
+                                    {
+                                        "x": 0.10288339781875745,
+                                        "y": 0.36998579340881455
+                                    },
+                                    {
+                                        "x": 0.508987375120539,
+                                        "y": 0.3699826129338054
+                                    },
+                                    {
+                                        "x": 0.5089873433066806,
+                                        "y": 0.3851240249078933
+                                    },
+                                    {
+                                        "x": 0.10288336487082086,
+                                        "y": 0.38512716793714136
+                                    }
+                                ],
+                                "page": 20
+                            }
+                        ],
+                        "type": "string",
+                        "value": "Your closing account balance as at 31 MAY 2021"
+                    },
+                    "summary_amount": {
+                        "success": true,
+                        "confidence": 0.93359375,
+                        "geometry": [
+                            {
+                                "boundingBox": {
+                                    "top": 0.3690047063019071,
+                                    "left": 0.5378073095850491,
+                                    "width": 0.10404507358173698,
+                                    "height": 0.015386446457736014
+                                },
+                                "vertices": [
+                                    {
+                                        "x": 0.5378073418302538,
+                                        "y": 0.3690055217679704
+                                    },
+                                    {
+                                        "x": 0.6418523831667861,
+                                        "y": 0.3690047063019071
+                                    },
+                                    {
+                                        "x": 0.6418523512168228,
+                                        "y": 0.38439034704203207
+                                    },
+                                    {
+                                        "x": 0.5378073095850491,
+                                        "y": 0.38439115275964314
+                                    }
+                                ],
+                                "page": 20
+                            }
+                        ],
+                        "type": "number",
+                        "value": 123084.85
+                    }
+                }
+            ],
+            "statement_end_date": {
+                "confidence": 0.88671875,
+                "geometry": [
+                    {
+                        "boundingBox": {
+                            "top": 0.19279994728466227,
+                            "left": 0.8157498901395159,
+                            "width": 0.1118610358717852,
+                            "height": 0.011845509724720482
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.8157499143560311,
+                                "y": 0.19280094403912176
+                            },
+                            {
+                                "x": 0.9276109260113011,
+                                "y": 0.19279994728466227
+                            },
+                            {
+                                "x": 0.9276109020391501,
+                                "y": 0.20464446832344863
+                            },
+                            {
+                                "x": 0.8157498901395159,
+                                "y": 0.20464545700938275
+                            }
+                        ],
+                        "page": 20
+                    }
+                ],
+                "type": "string",
+                "value": "05/31/2021"
+            },
+            "statement_start_date": {
+                "confidence": 0.83203125,
+                "geometry": [
+                    {
+                        "boundingBox": {
+                            "top": 0.19280118778673055,
+                            "left": 0.6867924064040316,
+                            "width": 0.10160287327085626,
+                            "height": 0.011723300730611674
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.6867924306496992,
+                                "y": 0.19280209313428073
+                            },
+                            {
+                                "x": 0.7883952796748879,
+                                "y": 0.19280118778673055
+                            },
+                            {
+                                "x": 0.7883952556488866,
+                                "y": 0.20452359042284443
+                            },
+                            {
+                                "x": 0.6867924064040316,
+                                "y": 0.20452448851734223
+                            }
+                        ],
+                        "page": 20
+                    },
+                    {
+                        "boundingBox": {
+                            "top": 0.35117795236350974,
+                            "left": 0.4227717935125666,
+                            "width": 0.0867040950100893,
+                            "height": 0.011723066187689368
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.4227718183290487,
+                                "y": 0.3511786413307123
+                            },
+                            {
+                                "x": 0.5094758885226559,
+                                "y": 0.35117795236350974
+                            },
+                            {
+                                "x": 0.5094758638936282,
+                                "y": 0.3629003357734806
+                            },
+                            {
+                                "x": 0.4227717935125666,
+                                "y": 0.3629010185511991
+                            }
+                        ],
+                        "page": 20
+                    }
+                ],
+                "type": "string",
+                "value": "05/01/2021"
+            },
+            "account_holder_name": {
+                "success": true,
+                "confidence": 0.89453125,
+                "geometry": [
+                    {
+                        "boundingBox": {
+                            "top": 0.19561542536905638,
+                            "left": 0.07998666106387681,
+                            "width": 0.062402255005518464,
+                            "height": 0.009036534699283866
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.07998668076451264,
+                                "y": 0.19561598034634645
+                            },
+                            {
+                                "x": 0.14238891606939527,
+                                "y": 0.19561542536905638
+                            },
+                            {
+                                "x": 0.14238889647275504,
+                                "y": 0.20465140852485464
+                            },
+                            {
+                                "x": 0.07998666106387681,
+                                "y": 0.20465196006834024
+                            }
+                        ],
+                        "page": 20
+                    },
+                    {
+                        "boundingBox": {
+                            "top": 0.2317539626766712,
+                            "left": 0.6872808027975624,
+                            "width": 0.07717909899897168,
+                            "height": 0.010746198693696418
+                        },
+                        "vertices": [
+                            {
+                                "x": 0.6872808250217899,
+                                "y": 0.2317546320847934
+                            },
+                            {
+                                "x": 0.7644599017965341,
+                                "y": 0.2317539626766712
+                            },
+                            {
+                                "x": 0.7644598797252633,
+                                "y": 0.24249949701264745
+                            },
+                            {
+                                "x": 0.6872808027975624,
+                                "y": 0.24250016137036762
+                            }
+                        ],
+                        "page": 20
+                    }
+                ],
+                "type": "string",
+                "value": "Jane Doe"
+            },
+            "branch_transit_number": {
+                "success": true,
+                "confidence": 0.93359375,
+                "type": "string",
+                "value": ""
+            },
+            "bank_name": {
+                "success": true,
+                "confidence": 0.92578125,
+                "type": "string",
+                "value": ""
+            },
+            "transaction_details": [
+                {
+                    "date": {
+                        "success": true,
+                        "confidence": 0.92578125,
+                        "type": "string",
+                        "value": ""
+                    },
+                    "balance": {
+                        "success": true,
+                        "confidence": 0.92578125,
+                        "type": "number",
+                        "value": ""
+                    },
+                    "description": {
+                        "success": true,
+                        "confidence": 0.91796875,
+                        "type": "string",
+                        "value": ""
+                    },
+                    "deposits": {
+                        "success": true,
+                        "confidence": 0.93359375,
+                        "type": "number",
+                        "value": ""
+                    },
+                    "withdrawals": {
+                        "success": true,
+                        "confidence": 0.93359375,
+                        "type": "number",
+                        "value": ""
+                    }
+                }
+            ]
+        }
+    ]
+}
