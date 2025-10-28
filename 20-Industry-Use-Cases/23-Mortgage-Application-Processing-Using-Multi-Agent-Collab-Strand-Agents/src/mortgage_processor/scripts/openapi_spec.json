@@ -79,25 +79,11 @@
           "assets": {
             "$ref": "#/components/schemas/Assets"
           },
-          "declarations": {
-            "type": "array",
-            "description": "Borrower's declarations (e.g., legal or financial disclosures)",
-            "items": {
-              "$ref": "#/components/schemas/Declaration"
-            }
-          },
           "employment_history": {
             "type": "array",
             "description": "Borrower's employment history",
             "items": {
               "$ref": "#/components/schemas/EmploymentHistoryItem"
-            }
-          },
-          "liabilities": {
-            "type": "array",
-            "description": "Borrower's outstanding debts",
-            "items": {
-              "$ref": "#/components/schemas/Liability"
             }
           },
           "loan_information": {
@@ -123,9 +109,7 @@
           "ssn",
           "loan_amount",
           "assets",
-          "declarations",
           "employment_history",
-          "liabilities",
           "loan_information",
           "borrower_personal_information"
         ]
@@ -167,20 +151,6 @@
         },
         "required": ["type", "account_number", "institution", "value"]
       },
-      "Declaration": {
-        "type": "object",
-        "properties": {
-          "question": {
-            "type": "string",
-            "description": "Declaration question (e.g., regarding bankruptcy)"
-          },
-          "answer": {
-            "type": "boolean",
-            "description": "Borrower's answer; true if yes, false if no"
-          }
-        },
-        "required": ["question", "answer"]
-      },
       "EmploymentHistoryItem": {
         "type": "object",
         "properties": {
@@ -221,39 +191,6 @@
           "position",
           "monthly_base_income",
           "start_date"
-        ]
-      },
-      "Liability": {
-        "type": "object",
-        "properties": {
-          "account_number": {
-            "type": "string",
-            "description": "Liability account number"
-          },
-          "institution": {
-            "type": "string",
-            "description": "Institution holding the debt"
-          },
-          "balance": {
-            "type": "number",
-            "description": "Outstanding balance"
-          },
-          "monthly_payment": {
-            "type": "number",
-            "description": "Monthly payment amount"
-          },
-          "type": {
-            "type": "string",
-            "enum": ["Other Loan", "Installment Loan", "Revolving Credit"],
-            "description": "Type of liability"
-          }
-        },
-        "required": [
-          "account_number",
-          "institution",
-          "balance",
-          "monthly_payment",
-          "type"
         ]
       },
       "LoanInformation": {

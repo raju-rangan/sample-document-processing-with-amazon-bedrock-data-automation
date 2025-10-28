@@ -16,7 +16,7 @@ import sys
 import time
 
 REGION = "us-east-1"
-GATEWAY_NAME = "TestGWforLambda"
+GATEWAY_NAME = "MortgageGateway"
 LAMBDA_FUNCTION_NAME = "mortgage-applications-crud"
 
 acps_client = boto3.client(service_name="bedrock-agentcore-control", region_name=REGION)
@@ -63,7 +63,7 @@ def create_gateway(client, role_arn: str, authorizer_config: Dict[str, Any]) -> 
             protocolType="MCP",
             authorizerType="CUSTOM_JWT",
             authorizerConfiguration=authorizer_config,
-            description="AgentCore Gateway with AWS Lambda target type"
+            description="AgentCore Gateway with OpenAPI target type"
         )
         return resp["gatewayId"], resp["gatewayUrl"]
     except ClientError as e:
