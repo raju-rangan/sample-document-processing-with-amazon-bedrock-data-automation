@@ -157,12 +157,7 @@ class LoanInformationAttribute(MapAttribute):
     purpose = UnicodeAttribute()
     occupancy = UnicodeAttribute()
     property = PropertyAttribute()
-
-
-class DeclarationAttribute(MapAttribute):
-    question = UnicodeAttribute()
-    answer = BooleanAttribute()
-
+    
 
 class MortgageApplication(Model):
     """
@@ -189,9 +184,7 @@ class MortgageApplication(Model):
     co_borrower_personal_information = PersonalInformationAttribute(null=True)
     employment_history = ListAttribute(of=EmployerAttribute)
     assets = AssetsAttribute()
-    liabilities = ListAttribute(of=LoanAccountAttribute)
     loan_information = LoanInformationAttribute()
-    declarations = ListAttribute(of=DeclarationAttribute)
     underwriter_notes = ListAttribute(of=UnicodeAttribute)
 
     version = UnicodeAttribute(default="1.0")
@@ -206,10 +199,8 @@ class MortgageApplication(Model):
         loan_amount: Union[int, float, Decimal],
         assets: Dict[str, Any],
         employment_history: List[Dict[str, Any]],
-        liabilities: List[Dict[str, Any]],
         loan_information: Dict[str, Any],
         borrower_personal_information: Dict[str, Any],
-        declarations: List[Dict[str, bool]],
         co_borrower_personal_information: Optional[Dict[str, Any]] = None,
         underwriter_notes: List[str] = [],
     ) -> MortgageApplication:
@@ -223,11 +214,9 @@ class MortgageApplication(Model):
                 loan_amount=loan_amount,
                 assets=AssetsAttribute(**assets),
                 employment_history=[EmployerAttribute(**e) for e in employment_history],
-                liabilities=[LoanAccountAttribute(**l) for l in liabilities],
                 loan_information=LoanInformationAttribute(**loan_information),
                 borrower_personal_information=PersonalInformationAttribute(**borrower_personal_information),
                 co_borrower_personal_information=PersonalInformationAttribute(**co_borrower_personal_information) if co_borrower_personal_information else None,
-                declarations=[DeclarationAttribute(**d) for d in declarations],
                 underwriter_notes = underwriter_notes,
             )
             application.save()
