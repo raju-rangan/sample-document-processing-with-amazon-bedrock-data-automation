@@ -88,3 +88,15 @@ npm-debug.log*
 *.pid
 *.seed
 *.pid.lock
+
+# Infrastructure and build artifacts
+infrastructure/
+*.tfstate
+*.tfstate.backup
+.terraform/
+builds/
+
+.bedrock_agentcore.yaml
+documents/
+assets/
+Makefile

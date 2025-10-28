@@ -1,10 +1,11 @@
-default_agent: dev
+default_agent: src_mortgage_processor_main
 agents:
-  dev:
-    name: dev
-    entrypoint: main.py
+  src_mortgage_processor_main:
+    name: src_mortgage_processor_main
+    entrypoint: ./src/mortgage_processor/main.py
     platform: linux/arm64
     container_runtime: docker
+    source_path: ./
     aws:
       execution_role: arn:aws:iam::145023138732:role/agentcore-dev-iam-role
       execution_role_auto_create: true
@@ -14,17 +15,27 @@ agents:
       ecr_auto_create: false
       network_configuration:
         network_mode: PUBLIC
+        network_mode_config: null
       protocol_configuration:
         server_protocol: HTTP
       observability:
         enabled: true
     bedrock_agentcore:
-      agent_id: dev-7IRV2WDSok
-      agent_arn: arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok
-      agent_session_id: 9b589a58-b353-452c-8e4b-b7a8ffc3abb3
+      agent_id: src_mortgage_processor_main-SSl11IF66g
+      agent_arn: arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/src_mortgage_processor_main-SSl11IF66g
+      agent_session_id: null
     codebuild:
       project_name: null
       execution_role: null
       source_bucket: null
+    memory:
+      mode: STM_ONLY
+      memory_id: src_mortgage_processor_main_mem-BjQ1lAH0Z5
+      memory_arn: arn:aws:bedrock-agentcore:us-east-1:145023138732:memory/src_mortgage_processor_main_mem-BjQ1lAH0Z5
+      memory_name: src_mortgage_processor_main_mem
+      event_expiry_days: 30
+      first_invoke_memory_check_done: false
+      was_created_by_toolkit: true
     authorizer_configuration: null
+    request_header_configuration: null
     oauth_configuration: null
