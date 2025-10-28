@@ -5,11 +5,13 @@ from mortgage_processor.agents.storage_agent import STORAGE_AGENT_SYSTEM_PROMPT
 from mortgage_processor.agents.extraction_agent import EXTRACTION_AGENT_SYSTEM_PROMPT
 import os
 import boto3
-from mortgage_processor.mcp.mcp_client import get_gateway_mcp_client
+from mortgage_processor.gateway.mcp_client import get_gateway_mcp_client
 
 
 async def invoke_graph(prompt: str):
     REGION = os.environ.get('AWS_REGION','us-east-1')
+    EXTRACTION_AGENT_MODEL_ID = os.environ.get('EXTRACTION_AGENT_MODEL_ID','global.anthropic.claude-sonnet-4-20250514-v1:0')
+    STORAGE_AGENT_MODEL_ID = os.environ.get('STORAGE_AGENT_MODEL_ID','global.anthropic.claude-sonnet-4-20250514-v1:0')
 
     gateway_mcp_client = get_gateway_mcp_client(region=REGION)
 
@@ -21,7 +23,7 @@ async def invoke_graph(prompt: str):
         gateway_tools = gateway_mcp_client.list_tools_sync()
 
         extraction_model = BedrockModel(
-            model_id="us.anthropic.claude-opus-4-20250514-v1:0",
+            model_id=EXTRACTION_AGENT_MODEL_ID,
             temperature=0.0,
             boto_session=session,
         )
@@ -34,7 +36,7 @@ async def invoke_graph(prompt: str):
         
 
         storage_model = BedrockModel(
-            model_id="global.anthropic.claude-sonnet-4-20250514-v1:0",
+            model_id=STORAGE_AGENT_MODEL_ID,
             temperature=0.0,
             boto_session=session,
         )
