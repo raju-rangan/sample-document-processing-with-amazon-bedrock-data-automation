@@ -1,4 +1,5 @@
 import json
+import uuid
 import boto3
 import os
 from typing import Dict, Any
@@ -62,7 +63,9 @@ def response(status_code: int, body: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def invoke_agentcore(prompt: str) -> dict:
-    logger.info(f"Invoking Agentcore {AGENT_RUNTIME_ARN} with prompt: {prompt}")
+    # In order to leverage cloudwatch GenAI observability a traceId must be sent, in real world scenarios the trace will be provided by the OTEL instrumentation
+    trace_id = uuid.uuid4().hex
+    logger.info(f"Invoking Agentcore {AGENT_RUNTIME_ARN} with prompt: {prompt}, trace_id: {trace_id}")
 
     session = boto3.Session()
 
@@ -79,7 +82,8 @@ def invoke_agentcore(prompt: str) -> dict:
     response = client.invoke_agent_runtime(
         agentRuntimeArn=AGENT_RUNTIME_ARN,
         qualifier=AGENT_ENDPOINT_NAME,
-        payload=payload
+        payload=payload,
+        traceId=trace_id
     )
     return response
 
