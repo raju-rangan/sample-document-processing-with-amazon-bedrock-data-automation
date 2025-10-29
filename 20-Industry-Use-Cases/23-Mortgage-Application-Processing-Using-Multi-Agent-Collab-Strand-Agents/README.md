@@ -1,10 +1,5 @@
 # Mortgage Application Processing with Multi-Agent Collaboration
 
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Terraform](https://img.shields.io/badge/terraform-1.13.4+-purple.svg)](https://www.terraform.io/)
-[![AWS](https://img.shields.io/badge/AWS-Bedrock-orange.svg)](https://aws.amazon.com/bedrock/)
-[![Strands](https://img.shields.io/badge/Strands-Agents-green.svg)](https://github.com/aws-samples/strands-agents)
-
 ## What This Does
 
 This system transforms manual mortgage application processing into an automated, intelligent workflow. Upload a mortgage document to S3, and watch as multiple AI agents collaborate to extract, process, and store structured data automatically.
