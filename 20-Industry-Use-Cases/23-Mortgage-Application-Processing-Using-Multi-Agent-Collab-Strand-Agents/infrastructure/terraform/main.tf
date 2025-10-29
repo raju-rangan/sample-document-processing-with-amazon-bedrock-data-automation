@@ -359,7 +359,7 @@ module "mortgage_applications_agentcore_lambda" {
   source_path = "${path.module}/lambdas/agentcore_lambda"
 
   environment_variables = {
-    AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/dev-7IRV2WDSok"
+    AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/src_mortgage_processor_main-SSl11IF66g"
     AGENT_ENDPOINT_NAME = "DEFAULT"
   }
 
