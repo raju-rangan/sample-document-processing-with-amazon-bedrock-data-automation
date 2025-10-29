@@ -4,14 +4,14 @@ data "aws_region" "current" {}
 
 module "raw_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.5.0"
+  version = "~> 5.8"
 
   bucket_prefix = "raw-document-store"
-  acl    = "private"
-  force_destroy = true
-
+  acl = null
   control_object_ownership = true
-  object_ownership         = "ObjectWriter"
+  object_ownership = "BucketOwnerEnforced"
+
+  force_destroy = true
 }
 
 resource "aws_lambda_permission" "allow_s3_invoke" {
@@ -35,19 +35,18 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
 module "bda_s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 5.5.0"
+  version = "~> 5.8"
 
   bucket_prefix = "bedrock-data-automation-store"
-  acl    = "private"
-  force_destroy = true
-  
+  acl = null
   control_object_ownership = true
-  object_ownership         = "ObjectWriter"
+  object_ownership = "BucketOwnerEnforced"
+  force_destroy = true
 }
 
 module "applications_dynamodb_table" {
   source   = "terraform-aws-modules/dynamodb-table/aws"
-  version = "~> 5.0.0"
+  version = "~> 5.0"
 
   name     = "mortgage-applications"
   hash_key = "application_id"
@@ -237,7 +236,7 @@ resource "aws_iam_role_policy" "agentcore_policy" {
 
 module "agentcore_ecr" {
   source = "terraform-aws-modules/ecr/aws"
-  version = "~> 2.4.0"
+  version = "~> 2.4"
 
   repository_name = "bedrock_agentcore-${var.agent_name}"
 
@@ -270,7 +269,7 @@ module "agentcore_ecr" {
 
 module "mortgage_applications_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0.1"
+  version = "~> 8.1"
 
   function_name = "mortgage-applications-crud"
   description   = "CRUD operations for mortgage applications"
@@ -281,6 +280,8 @@ module "mortgage_applications_lambda" {
   publish       = true
 
   source_path = "${path.module}/lambdas/crud_lambda"
+
+  architectures = ["arm64"]
 
   environment_variables = {
     TABLE_NAME = "mortgage-applications"
@@ -346,7 +347,7 @@ module "eventbridge" {
 
 module "mortgage_applications_agentcore_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0.1"
+  version = "~> 8.1"
 
   function_name = "mortgage-agentcore"
   description   = "Mortgage application agentcore"
@@ -357,6 +358,8 @@ module "mortgage_applications_agentcore_lambda" {
   publish       = true
 
   source_path = "${path.module}/lambdas/agentcore_lambda"
+
+  architectures = ["arm64"]
 
   environment_variables = {
     AGENT_RUNTIME_ARN = "arn:aws:bedrock-agentcore:us-east-1:145023138732:runtime/src_mortgage_processor_main-SSl11IF66g"
@@ -413,7 +416,7 @@ module "mortgage_applications_agentcore_lambda" {
 
 module "mortgage_applications_preprocessor_lambda" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0.1"
+  version = "~> 8.1"
 
   function_name = "mortgage-preprocess"
   description   = "Mortgage application preprocessor"
@@ -423,6 +426,8 @@ module "mortgage_applications_preprocessor_lambda" {
   memory_size   = 256
   publish       = true
 
+  architectures = ["arm64"]
+  
   source_path = "${path.module}/lambdas/preprocess_lambda"
 
   environment_variables = {
@@ -478,7 +483,7 @@ module "mortgage_applications_preprocessor_lambda" {
 
 module "lambda_authorizer" {
   source  = "terraform-aws-modules/lambda/aws"
-  version = "~> 8.0.1"
+  version = "~> 8.1"
 
   function_name = "api-gateway-authorizer"
   description   = "Simple API key authorizer for API Gateway"
@@ -489,6 +494,8 @@ module "lambda_authorizer" {
   publish = true
 
   source_path = "${path.module}/lambdas/lambda_authorizer"
+
+  architectures = ["arm64"]
 
   environment_variables = {
     API_KEY = "aaa"
@@ -508,7 +515,7 @@ module "lambda_authorizer" {
 
 module "apigateway-v2" {
     source  = "terraform-aws-modules/apigateway-v2/aws"
-    version = "~> 5.3"
+    version = "~>5.4"
 
     name          = "mortgage-applications-api"
     description   = "HTTP API Gateway for mortgage applications CRUD operations"
